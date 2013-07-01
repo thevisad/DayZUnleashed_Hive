@@ -1,0 +1,6 @@
+Copy boost 1 52 0 into this folder
+The folder structure in this folder should be:
+	- boost
+	- libs
+	- stage
+	- + more
