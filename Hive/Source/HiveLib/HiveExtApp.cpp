@@ -134,6 +134,9 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	handlers[309] = boost::bind(&HiveExtApp::objectInventory,this,_1,true);
 	handlers[310] = boost::bind(&HiveExtApp::objectDelete,this,_1,true);
 	handlers[399] = boost::bind(&HiveExtApp::serverShutdown,this,_1);		//Shut down the hiveExt instance
+	//Unleashed Begin
+	//Publish
+	handlers[320] = boost::bind(&HiveExtApp::buildingPublish,this,_1);
 	//player/character loads
 	handlers[101] = boost::bind(&HiveExtApp::loadPlayer,this,_1);
 	handlers[102] = boost::bind(&HiveExtApp::loadCharacterDetails,this,_1);
@@ -329,6 +332,30 @@ Sqf::Value HiveExtApp::streamObjects( Sqf::Parameters params )
 	}
 }
 
+
+Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
+{
+	if (_srvBuildings.empty())
+	{
+
+			int serverId = boost::get<int>(params.at(0));
+			setServerId(serverId);
+
+			_objData->populateBuildings(getServerId(), _srvBuildings);
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ObjectStreamStart"));
+			retVal.push_back(static_cast<int>(_srvBuildings.size()));
+			retVal.push_back(_initKey);
+			return retVal;
+	}
+	else
+	{
+		Sqf::Parameters retVal = _srvBuildings.front();
+		_srvBuildings.pop();
+
+		return retVal;
+	}
+}
 Sqf::Value HiveExtApp::objectInventory( Sqf::Parameters params, bool byUID /*= false*/ )
 {
 	Int64 objectIdent = Sqf::GetBigInt(params.at(0));
@@ -384,8 +411,9 @@ Sqf::Value HiveExtApp::objectPublish( Sqf::Parameters params )
 	Sqf::Value hitPoints = boost::get<Sqf::Parameters>(params.at(6));
 	double fuel = Sqf::GetDouble(params.at(7));
 	Int64 uniqueId = Sqf::GetBigInt(params.at(8));
+	int combinationId = Sqf::GetIntAny(params.at(9));
 
-	return ReturnBooleanStatus(_objData->createObject(getServerId(),className,damage,characterId,worldSpace,inventory,hitPoints,fuel,uniqueId));
+	return ReturnBooleanStatus(_objData->createObject(getServerId(),className,damage,characterId,worldSpace,inventory,hitPoints,fuel,uniqueId,combinationId));
 }
 
 #include "DataSource/CharDataSource.h"

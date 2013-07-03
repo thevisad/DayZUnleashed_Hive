@@ -75,7 +75,9 @@ private:
 	Sqf::Value getDateTime(Sqf::Parameters params);
 
 	ObjDataSource::ServerObjectsQueue _srvObjects;
+	ObjDataSource::ServerBuildingsQueue _srvBuildings;
 	Sqf::Value streamObjects(Sqf::Parameters params);
+	Sqf::Value streamBuildings(Sqf::Parameters params);
 
 	Sqf::Value objectPublish(Sqf::Parameters params);
 	Sqf::Value objectInventory(Sqf::Parameters params, bool byUID = false);

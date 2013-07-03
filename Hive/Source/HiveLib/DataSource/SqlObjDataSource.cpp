@@ -114,7 +114,7 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 		}
 	}
 	
-	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage` FROM `%s` WHERE `Instance`=%d AND `Classname` IS NOT NULL", _objTableName.c_str(), serverId);
+	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage`, `combination` FROM `%s` WHERE `Instance`=%d AND `Classname` IS NOT NULL", _objTableName.c_str(), serverId);
 	if (!worldObjsRes)
 	{
 		_logger.error("Failed to fetch objects from database");
@@ -139,7 +139,7 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 			{
 				PositionInfo posInfo = FixOOBWorldspace(worldSpace);
 				if (posInfo.is_initialized())
-					_logger.information("Reset ObjectID " + lexical_cast<string>(objectId) + " (" + row[1].getString() + ") from position " + lexical_cast<string>(*posInfo));
+					_logger.information("Pushed ObjectID " + lexical_cast<string>(objectId) + " (" + row[1].getString() + ") to position " + lexical_cast<string>(*posInfo));
 
 			}			
 			objParams.push_back(worldSpace);
@@ -155,6 +155,7 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 			objParams.push_back(lexical_cast<Sqf::Value>(row[5].getCStr()));
 			objParams.push_back(row[6].getDouble());
 			objParams.push_back(row[7].getDouble());
+			objParams.push_back(row[8].getInt32());
 		}
 		catch (const bad_lexical_cast&)
 		{
@@ -165,6 +166,44 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 		queue.push(objParams);
 	}
 }
+
+void SqlObjDataSource::populateBuildings( int serverId, ServerBuildingsQueue& queue )
+{
+
+	auto worldBuildRes = getDB()->queryParams("SELECT instance_building.id, building.class_name, instance_building.worldspace FROM instance_building INNER JOIN building ON instance_building.building_id = building.id WHERE instance_building.instance_id = '%d'", serverId);
+
+	if (!worldBuildRes)
+	{
+		_logger.error("Failed to fetch objects from database");
+		return;
+	}
+	while (worldBuildRes->fetchRow())
+	{
+		auto row = worldBuildRes->fields();
+
+		Sqf::Parameters bldParams;
+		//objParams.push_back(string("BLD"));
+		int objectId = row[0].getInt32();
+
+		try
+		{
+			bldParams.push_back(row[1].getString()); //classname
+			Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[2].getString());
+			PositionInfo posInfo = FixOOBWorldspace(worldSpace);
+			if (posInfo.is_initialized())
+			_logger.information("Pushed BuildingID (" + lexical_cast<string>(objectId) + ") class name (" + row[1].getString() + ") tp position  (" + row[2].getString() + ")");
+			bldParams.push_back(row[2].getString());
+		}
+		catch (const bad_lexical_cast&)
+		{
+			_logger.error("Skipping BuildingID " + lexical_cast<string>(objectId) + " load because of invalid data in db");
+			continue;
+		}
+
+		queue.push(bldParams);
+	}
+}
+
 
 bool SqlObjDataSource::updateObjectInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory )
 {
@@ -228,11 +267,11 @@ bool SqlObjDataSource::updateVehicleStatus( int serverId, Int64 objectIdent, con
 }
 
 bool SqlObjDataSource::createObject( int serverId, const string& className, double damage, int characterId, 
-	const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId )
+	const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId, int combinationId )
 {
 	auto stmt = getDB()->makeStatement(_stmtCreateObject, 
-		"INSERT INTO `"+_objTableName+"` (`ObjectUID`, `Instance`, `Classname`, `Damage`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Datestamp`) "
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
+		"INSERT INTO `"+_objTableName+"` (`ObjectUID`, `Instance`, `Classname`, `Damage`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Datestamp`,`combination`) "
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,?)");
 
 	stmt->addInt64(uniqueId);
 	stmt->addInt32(serverId);
@@ -243,6 +282,7 @@ bool SqlObjDataSource::createObject( int serverId, const string& className, doub
 	stmt->addString(lexical_cast<string>(inventory));
 	stmt->addString(lexical_cast<string>(hitPoints));
 	stmt->addDouble(fuel);
+	stmt->addInt32(combinationId);
 	bool exRes = stmt->execute();
 	poco_assert(exRes == true);
 
