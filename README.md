@@ -1,4 +1,4 @@
-OriginsUnleashed_Hive
+DayZUnleashed_Hive
 =====================
 
-Hive for Origins Unleashed
+Hive for DayZ Unleashed
