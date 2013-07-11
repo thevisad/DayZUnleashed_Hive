@@ -62,6 +62,11 @@ protected:
 	unique_ptr<CharDataSource> _charData;
 	unique_ptr<ObjDataSource> _objData;
 	unique_ptr<CustomDataSource> _customData;
+	//Unleashed
+	unique_ptr<ObjDataSource> _plySqdData;
+	unique_ptr<ObjDataSource> _bldData;
+	unique_ptr<ObjDataSource> _sqdData;
+	unique_ptr<ObjDataSource> _instData;
 
 	string _initKey;
 private:
@@ -101,4 +106,11 @@ private:
 
 	Sqf::Value changeTableAccess(Sqf::Parameters params);
 	Sqf::Value serverShutdown(Sqf::Parameters params);
+
+		//Unleashed
+	Sqf::Value buildingPublish(Sqf::Parameters params);
+	Sqf::Value squadPublish(Sqf::Parameters params);
+	Sqf::Value playerSquadPublish(Sqf::Parameters params);
+	Sqf::Value instancePublish(Sqf::Parameters params);
+
 };

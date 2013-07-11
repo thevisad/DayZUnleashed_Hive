@@ -170,7 +170,7 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 void SqlObjDataSource::populateBuildings( int serverId, ServerBuildingsQueue& queue )
 {
 
-	auto worldBuildRes = getDB()->queryParams("SELECT instance_building.id, building.class_name, instance_building.worldspace FROM instance_building INNER JOIN building ON instance_building.building_id = building.id WHERE instance_building.instance_id = '%d'", serverId);
+	auto worldBuildRes = getDB()->queryParams("SELECT instance_building.objectUID, building.class_name, instance_building.characterId, instance_building.worldspace, instance_building.inventory, instance_building.hitpoints, instance_building.squadId, instance_building.combination FROM building INNER JOIN instance_building ON instance_building.buildingId = building.id WHERE instance_building.instanceId = '%d'", serverId);
 
 	if (!worldBuildRes)
 	{
@@ -182,18 +182,31 @@ void SqlObjDataSource::populateBuildings( int serverId, ServerBuildingsQueue& qu
 		auto row = worldBuildRes->fields();
 
 		Sqf::Parameters bldParams;
-		//objParams.push_back(string("BLD"));
-		int objectId = row[0].getInt32();
+		//bldParams.push_back(string("OBJ"));
 
-		try
-		{
-			bldParams.push_back(row[1].getString()); //classname
-			Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[2].getString());
-			PositionInfo posInfo = FixOOBWorldspace(worldSpace);
-			if (posInfo.is_initialized())
-			_logger.information("Pushed BuildingID (" + lexical_cast<string>(objectId) + ") class name (" + row[1].getString() + ") tp position  (" + row[2].getString() + ")");
-			bldParams.push_back(row[2].getString());
-		}
+		int objectId = row[0].getInt32();
+		bldParams.push_back(lexical_cast<string>(objectId));
+			try
+			{
+				bldParams.push_back(row[1].getString()); //objectId should be stringified 
+				bldParams.push_back(lexical_cast<string>(row[2].getInt32())); //ownerId should be stringified
+				Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[3].getString());
+
+				_logger.information("Pushed BuildingID (" + lexical_cast<string>(objectId) + ") class name (" + row[1].getString() + ") tp position  (" + row[2].getString() + ")");
+				bldParams.push_back(worldSpace);
+				//Inventory can be NULL
+				{
+					string invStr = "[]";
+					if (!row[4].isNull())
+						invStr = row[4].getString();
+
+					bldParams.push_back(lexical_cast<Sqf::Value>(invStr));
+				}	
+				bldParams.push_back(lexical_cast<Sqf::Value>(row[5].getCStr()));
+				bldParams.push_back(row[6].getInt32());
+				bldParams.push_back(row[7].getInt32());
+			}
+			
 		catch (const bad_lexical_cast&)
 		{
 			_logger.error("Skipping BuildingID " + lexical_cast<string>(objectId) + " load because of invalid data in db");
@@ -288,4 +301,72 @@ bool SqlObjDataSource::createObject( int serverId, const string& className, doub
 
 	return exRes;
 }
+
+bool SqlObjDataSource::createBuilding( int serverId, int buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId )
+{
+	auto stmt = getDB()->makeStatement(_stmtCreateBuilding, 
+		"INSERT INTO `instance_building` (`instanceId`, `objectUID`, `buildingId`, `worldspace`, `inventory`, `hitpoints`, `characterid`, `squadId`,`combination`) "
+		"VALUES ('?',  (SELECT building.class_name FROM building where id = 1), '?', '?', '?', '?', '?', '?', '?', CURRENT_TIMESTAMP)");
+		
+	stmt->addInt32(serverId);
+	stmt->addInt32(buildingUid);	
+	stmt->addString(lexical_cast<string>(worldSpace));
+	stmt->addString(lexical_cast<string>(inventory));
+	stmt->addString(lexical_cast<string>(hitPoints));
+	stmt->addInt32(characterId);
+	stmt->addInt32(squadId);
+	stmt->addInt32(combinationId);
+	bool exRes = stmt->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+
+bool SqlObjDataSource::createSquad( int serverId, const string& squadName )
+{
+	auto stmt = getDB()->makeStatement(_stmtCreateSquad, 
+		"INSERT INTO `squad` (`instance_id`, `squad_name`) "
+		"VALUES ('?' '?',CURRENT_TIMESTAMP )");
+
+	stmt->addInt32(serverId);
+	stmt->addString(squadName);
+	bool exRes = stmt->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+
+bool SqlObjDataSource::createPlayerSquad( int squadId, int characterId )
+{
+	auto stmt = getDB()->makeStatement(_stmtCreatePlayerSquad, 
+		"INSERT INTO `instance_squad` (`squadId`, `CharacterID`) "
+		"VALUES (?, ?, CURRENT_TIMESTAMP)");
+
+	stmt->addInt32(squadId);
+	stmt->addInt32(characterId);
+	bool exRes = stmt->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+
+bool SqlObjDataSource::createInstance( int serverId, const Sqf::Value& currentState, const Sqf::Value& worldSpace, const Sqf::Value& quests )
+{
+	auto stmt = getDB()->makeStatement(_stmtCreateInstance, 
+		"INSERT INTO `instance_variables` (`instanceID`, `currentState`, `worldSpace`, `quests`) "
+		"VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)");
+
+	stmt->addInt32(serverId);
+	stmt->addString(lexical_cast<string>(currentState));
+	stmt->addString(lexical_cast<string>(worldSpace));
+	stmt->addString(lexical_cast<string>(quests));
+	bool exRes = stmt->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+
+
+
+
 
