@@ -25,6 +25,7 @@
 #include "DataSource/CharDataSource.h"
 #include "DataSource/ObjDataSource.h"
 #include "DataSource/CustomDataSource.h"
+#include "DataSource/BuildingDataSource.h"
 
 #include <boost/function.hpp>
 #include <boost/date_time.hpp>
@@ -63,10 +64,10 @@ protected:
 	unique_ptr<ObjDataSource> _objData;
 	unique_ptr<CustomDataSource> _customData;
 	//Unleashed
-	unique_ptr<ObjDataSource> _plySqdData;
-	unique_ptr<ObjDataSource> _bldData;
-	unique_ptr<ObjDataSource> _sqdData;
-	unique_ptr<ObjDataSource> _instData;
+	//unique_ptr<ObjDataSource> _plySqdData;
+	unique_ptr<BuildingDataSource> _bldData;
+	//unique_ptr<ObjDataSource> _sqdData;
+	//unique_ptr<ObjDataSource> _instData;
 
 	string _initKey;
 private:
@@ -80,7 +81,7 @@ private:
 	Sqf::Value getDateTime(Sqf::Parameters params);
 
 	ObjDataSource::ServerObjectsQueue _srvObjects;
-	ObjDataSource::ServerBuildingsQueue _srvBuildings;
+	BuildingDataSource::ServerBuildingsQueue _srvBuildings;
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
 
@@ -109,8 +110,8 @@ private:
 
 		//Unleashed
 	Sqf::Value buildingPublish(Sqf::Parameters params);
-	Sqf::Value squadPublish(Sqf::Parameters params);
-	Sqf::Value playerSquadPublish(Sqf::Parameters params);
-	Sqf::Value instancePublish(Sqf::Parameters params);
+	//Sqf::Value squadPublish(Sqf::Parameters params);
+	//Sqf::Value playerSquadPublish(Sqf::Parameters params);
+	//Sqf::Value instancePublish(Sqf::Parameters params);
 
 };

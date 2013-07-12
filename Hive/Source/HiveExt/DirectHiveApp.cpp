@@ -23,6 +23,7 @@ DirectHiveApp::DirectHiveApp(string suffixDir) : HiveExtApp(suffixDir) {}
 #include "Shared/Library/Database/DatabaseLoader.h"
 #include "HiveLib/DataSource/SqlCharDataSource.h"
 #include "HiveLib/DataSource/SqlObjDataSource.h"
+#include "HiveLib/DataSource/SqlBuildingDataSource.h"
 
 bool DirectHiveApp::initialiseService()
 {
@@ -68,6 +69,14 @@ bool DirectHiveApp::initialiseService()
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> objConf(config().createView("Objects"));
 		_objData.reset(new SqlObjDataSource(logger(),_objDb,objConf.get()));
 	}
+
+	//Building Datasource
+	//Create object datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> objConf(config().createView("Buildings"));
+		_bldData.reset(new SqlBuildingDataSource(logger(),_objDb,objConf.get()));
+	}
+	
 
 	//Create custom datasource
 	_customData.reset(new CustomDataSource(logger(),_charDb,_objDb));

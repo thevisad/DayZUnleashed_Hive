@@ -30,18 +30,12 @@ public:
 	~SqlObjDataSource() {}
 
 	void populateObjects( int serverId, ServerObjectsQueue& queue ) override;
-	void populateBuildings( int serverId, ServerBuildingsQueue& queue ) override;
 	bool updateObjectInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory ) override;
 	bool deleteObject( int serverId, Int64 objectIdent, bool byUID ) override;
 	bool updateVehicleMovement( int serverId, Int64 objectIdent, const Sqf::Value& worldspace, double fuel ) override;
 	bool updateVehicleStatus( int serverId, Int64 objectIdent, const Sqf::Value& hitPoints, double damage ) override;
 	bool createObject( int serverId, const string& className, double damage, int characterId, 
 		const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId, int combinationId ) override;
-	//Unleashed
-	bool createBuilding( int serverId, int buildingId, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId ) override;
-	bool createSquad( int serverId, const string& squadName ) override;
-	bool createPlayerSquad( int squadId, int characterId ) override;
-	bool createInstance( int serverId, const Sqf::Value& currentState, const Sqf::Value& worldSpace, const Sqf::Value& quests ) override;
 private:
 	string _objTableName;
 	int _cleanupPlacedDays;
@@ -56,10 +50,4 @@ private:
 	SqlStatementID _stmtUpdateVehicleMovement;
 	SqlStatementID _stmtUpdateVehicleStatus;
 	SqlStatementID _stmtCreateObject;
-	//Unleashed
-	SqlStatementID _stmtCreateBuilding;
-	SqlStatementID _stmtCreateSquad;
-	SqlStatementID _stmtCreatePlayerSquad;
-	SqlStatementID _stmtCreateInstance;
-	
 };

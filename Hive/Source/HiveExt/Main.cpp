@@ -41,14 +41,14 @@ int main()
 {
 	Sqf::runTest();
 
-//#define DEBUG_SPLIT_TESTS
+#define DEBUG_SPLIT_TESTS
 #ifdef DEBUG_SPLIT_TESTS
 	using boost::lexical_cast;
 
 	DllMain(NULL,DLL_PROCESS_ATTACH,NULL);
 	char testOutBuf[4096];
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:307:");
-#define CUSTOMDATA_TESTS
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:307:");
+//#define CUSTOMDATA_TESTS
 #ifdef CUSTOMDATA_TESTS
 	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:1337:");
 	Sqf::Parameters objStreamStart = boost::get<Sqf::Parameters>(lexical_cast<Sqf::Value>(string(testOutBuf)));
@@ -132,11 +132,14 @@ int main()
 	}
 	
 #else
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:1337:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:12662:[]:[]:[]:[false,false,false,false,false,false,true,10130.1,any,[0.837194,0],0,[0,0]]:false:false:0:0:0:0:[]:0:0:Survivor3_DZ:0:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1311:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:101:23572678:1311:Audris:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:1337:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:12662:[]:[]:[]:[false,false,false,false,false,false,true,10130.1,any,[0.837194,0],0,[0,0]]:false:false:0:0:0:0:[]:0:0:Survivor3_DZ:0:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");
+	
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:101:23572678:1311:Audris:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:");
+	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:ACamp:22734334510:[248,[12784.5,14986,7.51e-04]]:[]:[]:22773510:285:345354:");
+	//["CHILD:400:%1:%2:%3:%4:%5:%6:%7:%8:%9:",dayZ_instance,_uid,_class,_charID,_worldspace, [],[],_squad ,_combination];
 #endif
 
 	DllMain(NULL,DLL_PROCESS_DETACH,NULL);

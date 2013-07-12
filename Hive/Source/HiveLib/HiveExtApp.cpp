@@ -141,6 +141,7 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	//handlers[421] = boost::bind(&HiveExtApp::squadPublish,this,_1);
 	//handlers[422] = boost::bind(&HiveExtApp::playerSquadPublish,this,_1);
 	//handlers[423] = boost::bind(&HiveExtApp::instancePublish,this,_1);
+	//handlers[424] = boost::bind(&HiveExtApp::serverPublish,this,_1);
 	//Stream
 	handlers[600] = boost::bind(&HiveExtApp::streamBuildings,this,_1);		
 	//handlers[601] = boost::bind(&HiveExtApp::streamSquad,this,_1);		
@@ -360,7 +361,7 @@ Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 			int serverId = boost::get<int>(params.at(0));
 			setServerId(serverId);
 
-			_objData->populateBuildings(getServerId(), _srvBuildings);
+			_bldData->populateBuildings(getServerId(), _srvBuildings);
 			Sqf::Parameters retVal;
 			retVal.push_back(string("ObjectStreamStart"));
 			retVal.push_back(static_cast<int>(_srvBuildings.size()));
@@ -437,18 +438,19 @@ Sqf::Value HiveExtApp::objectPublish( Sqf::Parameters params )
 
 Sqf::Value HiveExtApp::buildingPublish( Sqf::Parameters params )
 {
-	int buildingId = Sqf::GetIntAny(params.at(1));
-	string className = boost::get<string>(params.at(2));
-	int characterId = Sqf::GetIntAny(params.at(3));
-	Sqf::Value worldSpace = boost::get<Sqf::Parameters>(params.at(4));
-	Sqf::Value inventory = boost::get<Sqf::Parameters>(params.at(5));
-	Sqf::Value hitPoints = boost::get<Sqf::Parameters>(params.at(6));
+	int serverID = Sqf::GetIntAny(params.at(0));
+	string className = boost::get<string>(params.at(1));
+	Int64 buildingUid = Sqf::GetBigInt(params.at(2));
+	Sqf::Value worldSpace = boost::get<Sqf::Parameters>(params.at(3));
+	Sqf::Value inventory = boost::get<Sqf::Parameters>(params.at(4));
+	Sqf::Value hitPoints = boost::get<Sqf::Parameters>(params.at(5));
+	int characterId = Sqf::GetIntAny(params.at(6));
 	int squadId = Sqf::GetIntAny(params.at(7));
 	int combinationId = Sqf::GetIntAny(params.at(8));
 
-	return ReturnBooleanStatus(_bldData->createBuilding(getServerId(),buildingId,worldSpace,inventory,hitPoints,characterId,squadId,combinationId));
+	return ReturnBooleanStatus(_bldData->createBuilding(getServerId(),className,buildingUid,worldSpace,inventory,hitPoints,characterId,squadId,combinationId));
 }
-
+/*
 Sqf::Value HiveExtApp::squadPublish( Sqf::Parameters params )
 {
 	string squadName = boost::get<string>(params.at(1));
@@ -472,7 +474,7 @@ Sqf::Value HiveExtApp::instancePublish( Sqf::Parameters params )
 
 	return ReturnBooleanStatus(_instData->createInstance(getServerId(),currentState,worldSpace,quests));
 }
-
+*/
 
 #include "DataSource/CharDataSource.h"
 
