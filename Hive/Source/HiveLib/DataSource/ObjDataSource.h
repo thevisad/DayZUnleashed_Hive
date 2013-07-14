@@ -33,5 +33,5 @@ public:
 	virtual bool updateVehicleMovement( int serverId, Int64 objectIdent, const Sqf::Value& worldspace, double fuel ) = 0;
 	virtual bool updateVehicleStatus( int serverId, Int64 objectIdent, const Sqf::Value& hitPoints, double damage ) = 0;
 	virtual bool createObject( int serverId, const string& className, double damage, int characterId, 
-		const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId, int combinationId ) = 0;
+		const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId ) = 0;
 };

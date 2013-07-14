@@ -142,14 +142,14 @@ void SqlBuildingDataSource::populateBuildings( int serverId, ServerBuildingsQueu
 	}
 }
 
-/*
-bool SqlBuildingDataSource::updateObjectInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory )
+
+bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory )
 {
 	unique_ptr<SqlStatement> stmt;
 	if (byUID)
-		stmt = getDB()->makeStatement(_stmtUpdateObjectbyUID, "UPDATE `"+_objTableName+"` SET `Inventory` = ? WHERE `ObjectUID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtUpdateBuildingbyUID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectUID` = ? AND `Instance` = ?");
 	else
-		stmt = getDB()->makeStatement(_stmtUpdateObjectByID, "UPDATE `"+_objTableName+"` SET `Inventory` = ? WHERE `ObjectID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtUpdateBuildingByID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectID` = ? AND `Instance` = ?");
 
 	stmt->addString(lexical_cast<string>(inventory));
 	stmt->addInt64(objectIdent);
@@ -161,13 +161,14 @@ bool SqlBuildingDataSource::updateObjectInventory( int serverId, Int64 objectIde
 	return exRes;
 }
 
-bool SqlBuildingDataSource::deleteObject( int serverId, Int64 objectIdent, bool byUID )
+
+bool SqlBuildingDataSource::deleteBuilding( int serverId, Int64 objectIdent, bool byUID )
 {
 	unique_ptr<SqlStatement> stmt;
 	if (byUID)
-		stmt = getDB()->makeStatement(_stmtDeleteObjectByUID, "DELETE FROM `"+_objTableName+"` WHERE `ObjectUID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeleteBuildingByUID, "DELETE FROM `instance_building` WHERE `ObjectUID` = ? AND `Instance` = ?");
 	else
-		stmt = getDB()->makeStatement(_stmtDeleteObjectByID, "DELETE FROM `"+_objTableName+"` WHERE `ObjectID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeleteBuildingByID, "DELETE FROM `instance_building` WHERE `ObjectID` = ? AND `Instance` = ?");
 
 	stmt->addInt64(objectIdent);
 	stmt->addInt32(serverId);
@@ -176,17 +177,17 @@ bool SqlBuildingDataSource::deleteObject( int serverId, Int64 objectIdent, bool 
 	poco_assert(exRes == true);
 
 	return exRes;
-}*/
+}
 
 bool SqlBuildingDataSource::createBuilding( int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId )
 {
 	auto stmt = getDB()->makeStatement(_stmtCreateBuilding, 
 		"INSERT INTO `instance_building` ( `objectUID`, `instanceId`, `buildingId`, `worldspace`, `inventory`, `hitpoints`, `characterid`, `squadId`,`combination`, `created`) "
-		"VALUES ('?', '?', (SELECT building.id FROM building where building.class_name = '?'),  '?', '?', '?', '?', '?', '?', CURRENT_TIMESTAMP)");
+		"VALUES (?, ?, (SELECT building.id FROM building where building.class_name = ?), ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
 
 	//_key = format["CHILD:400:%1:%2:%3:%4:%5:%6:%7:%8:%9:",dayZ_instance,_uid,_class,_charID,_worldspace, [],[],_squad ,_combination];
 	
-	_logger.information("HIVE: Building Insert " + lexical_cast<string>(buildingUid) + ":"+lexical_cast<string>(serverId) + ":" +lexical_cast<string>(className) + ":" +lexical_cast<string>(worldSpace) + ":"+lexical_cast<string>(inventory) + ":"+lexical_cast<string>(hitPoints) + ":"+lexical_cast<string>(characterId) + ":"+lexical_cast<string>(squadId) + ":"+lexical_cast<string>(combinationId)+ ":");
+	//_logger.information("HIVE: Building Insert " + lexical_cast<string>(buildingUid) + ":"+lexical_cast<string>(serverId) + ":" +lexical_cast<string>(className) + ":" +lexical_cast<string>(worldSpace) + ":"+lexical_cast<string>(inventory) + ":"+lexical_cast<string>(hitPoints) + ":"+lexical_cast<string>(characterId) + ":"+lexical_cast<string>(squadId) + ":"+lexical_cast<string>(combinationId)+ ":");
 	//_logger.error("HIVE: Statement " + lexical_cast<string>(stmt)+ ":");
 
 	stmt->addInt32(buildingUid);

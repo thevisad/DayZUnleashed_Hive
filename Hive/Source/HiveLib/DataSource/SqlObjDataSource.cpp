@@ -115,7 +115,7 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 		}
 	}
 	
-	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage`, `combination` FROM `%s` WHERE `Instance`=%d AND `Classname` IS NOT NULL", _objTableName.c_str(), serverId);
+	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage` FROM `%s` WHERE `Instance`=%d AND `Classname` IS NOT NULL", _objTableName.c_str(), serverId);
 	if (!worldObjsRes)
 	{
 		_logger.error("Failed to fetch objects from database");
@@ -156,7 +156,6 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 			objParams.push_back(lexical_cast<Sqf::Value>(row[5].getCStr()));
 			objParams.push_back(row[6].getDouble());
 			objParams.push_back(row[7].getDouble());
-			objParams.push_back(row[8].getInt32());
 		}
 		catch (const bad_lexical_cast&)
 		{
@@ -230,12 +229,12 @@ bool SqlObjDataSource::updateVehicleStatus( int serverId, Int64 objectIdent, con
 }
 
 bool SqlObjDataSource::createObject( int serverId, const string& className, double damage, int characterId, 
-	const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId, int combinationId )
+	const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, double fuel, Int64 uniqueId )
 {
 	auto stmt = getDB()->makeStatement(_stmtCreateObject, 
-		"INSERT INTO `"+_objTableName+"` (`ObjectUID`, `Instance`, `Classname`, `Damage`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Datestamp`,`combination`) "
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,?)");
-
+		"INSERT INTO `"+_objTableName+"` (`ObjectUID`, `Instance`, `Classname`, `Damage`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Datestamp`) "
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:");
 	stmt->addInt64(uniqueId);
 	stmt->addInt32(serverId);
 	stmt->addString(className);
@@ -245,7 +244,6 @@ bool SqlObjDataSource::createObject( int serverId, const string& className, doub
 	stmt->addString(lexical_cast<string>(inventory));
 	stmt->addString(lexical_cast<string>(hitPoints));
 	stmt->addDouble(fuel);
-	stmt->addInt32(combinationId);
 	bool exRes = stmt->execute();
 	poco_assert(exRes == true);
 

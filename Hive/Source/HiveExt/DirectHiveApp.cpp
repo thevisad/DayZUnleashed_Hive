@@ -24,6 +24,9 @@ DirectHiveApp::DirectHiveApp(string suffixDir) : HiveExtApp(suffixDir) {}
 #include "HiveLib/DataSource/SqlCharDataSource.h"
 #include "HiveLib/DataSource/SqlObjDataSource.h"
 #include "HiveLib/DataSource/SqlBuildingDataSource.h"
+#include "HiveLib/DataSource/SqlQuestDataSource.h"
+#include "HiveLib/DataSource/SqlSquadDataSource.h"
+#include "HiveLib/DataSource/SqlInstanceDataSource.h"
 
 bool DirectHiveApp::initialiseService()
 {
@@ -73,10 +76,39 @@ bool DirectHiveApp::initialiseService()
 	//Building Datasource
 	//Create object datasource
 	{
-		Poco::AutoPtr<Poco::Util::AbstractConfiguration> objConf(config().createView("Buildings"));
-		_bldData.reset(new SqlBuildingDataSource(logger(),_objDb,objConf.get()));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> bldConf(config().createView("Buildings"));
+		_bldData.reset(new SqlBuildingDataSource(logger(),_bldDb,bldConf.get()));
+	}
+
+	//Instance Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> instConf(config().createView("Instance"));
+		_instData.reset(new SqlInstanceDataSource(logger(),_instDb,instConf.get()));
 	}
 	
+	//Squad Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> sqdConf(config().createView("Squad"));
+		_sqdData.reset(new SqlSquadDataSource(logger(),_sqdDb,sqdConf.get()));
+	}
+
+	//PlayerSquad Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> psqdConf(config().createView("PlayerSquad"));
+		_psqdData.reset(new SqlSquadDataSource(logger(),_psqdDb,psqdConf.get()));
+	}
+
+	//PlayerQuest Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> qstConf(config().createView("PlayerSquad"));
+		_plyQstData.reset(new SqlQuestDataSource(logger(),_qstDb,qstConf.get()));
+	}
+
+	//Quest Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> qstConf(config().createView("Quest"));
+		_qstData.reset(new SqlQuestDataSource(logger(),_pqstDb,qstConf.get()));
+	}
 
 	//Create custom datasource
 	_customData.reset(new CustomDataSource(logger(),_charDb,_objDb));

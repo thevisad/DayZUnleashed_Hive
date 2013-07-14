@@ -18,16 +18,17 @@
 
 #pragma once
 
-#include "Shared/Common/Types.h"
-#include "HiveLib/HiveExtApp.h"
+#include "DataSource.h"
 
-class Database;
-class DirectHiveApp: public HiveExtApp
+class QuestDataSource
 {
 public:
-	DirectHiveApp(string suffixDir);
-protected:
-	bool initialiseService() override;
-private:
-	shared_ptr<Database> _charDb, _objDb, _instDb, _sqdDb, _psqdDb, _qstDb, _bldDb, _pqstDb;
+	virtual ~QuestDataSource() {}
+
+	typedef std::queue<Sqf::Parameters> ServerQuestsQueue;
+	virtual void populateQuests( int serverId, ServerQuestsQueue& queue ) = 0;
+	virtual void populatePlayerQuests( int serverId, ServerQuestsQueue& queue ) = 0;
+	virtual bool deletePlayerQuest( int serverId, Int64 playerQuestIdent, bool byUID ) = 0;
+	virtual bool createPlayerQuest( int QuestId, int characterId ) = 0;
+	virtual bool createQuest( int serverId, const string& QuestName ) = 0;
 };

@@ -137,7 +137,7 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");
 	
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:101:23572678:1311:Audris:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:");
+	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:356:");
 	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:ACamp:22734334510:[248,[12784.5,14986,7.51e-04]]:[]:[]:22773510:285:345354:");
 	//["CHILD:400:%1:%2:%3:%4:%5:%6:%7:%8:%9:",dayZ_instance,_uid,_class,_charID,_worldspace, [],[],_squad ,_combination];
 #endif

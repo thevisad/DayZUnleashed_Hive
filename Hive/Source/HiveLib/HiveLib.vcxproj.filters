@@ -25,6 +25,15 @@
     <ClCompile Include="DataSource\SqlBuildingDataSource.cpp">
       <Filter>DataSource</Filter>
     </ClCompile>
+    <ClCompile Include="DataSource\SqlSquadDataSource.cpp">
+      <Filter>DataSource</Filter>
+    </ClCompile>
+    <ClCompile Include="DataSource\SqlQuestDataSource.cpp">
+      <Filter>DataSource</Filter>
+    </ClCompile>
+    <ClCompile Include="DataSource\SqlInstanceDataSource.cpp">
+      <Filter>DataSource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource\DataSource.h">
@@ -56,6 +65,24 @@
       <Filter>DataSource</Filter>
     </ClInclude>
     <ClInclude Include="DataSource\SqlBuildingDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\SqlSquadDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\SquadDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\QuestDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\SqlQuestDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\InstanceDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\SqlInstanceDataSource.h">
       <Filter>DataSource</Filter>
     </ClInclude>
   </ItemGroup>

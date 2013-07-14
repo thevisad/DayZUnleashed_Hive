@@ -26,6 +26,9 @@
 #include "DataSource/ObjDataSource.h"
 #include "DataSource/CustomDataSource.h"
 #include "DataSource/BuildingDataSource.h"
+#include "DataSource/SquadDataSource.h"
+#include "DataSource/QuestDataSource.h"
+#include "DataSource/InstanceDataSource.h"
 
 #include <boost/function.hpp>
 #include <boost/date_time.hpp>
@@ -64,10 +67,13 @@ protected:
 	unique_ptr<ObjDataSource> _objData;
 	unique_ptr<CustomDataSource> _customData;
 	//Unleashed
-	//unique_ptr<ObjDataSource> _plySqdData;
+	unique_ptr<SquadDataSource> _plySqdData;
 	unique_ptr<BuildingDataSource> _bldData;
-	//unique_ptr<ObjDataSource> _sqdData;
-	//unique_ptr<ObjDataSource> _instData;
+	unique_ptr<QuestDataSource> _qstData;
+	unique_ptr<QuestDataSource> _plyQstData;
+	unique_ptr<SquadDataSource> _sqdData;
+	unique_ptr<SquadDataSource> _psqdData;
+	unique_ptr<InstanceDataSource> _instData;
 
 	string _initKey;
 private:
@@ -82,12 +88,30 @@ private:
 
 	ObjDataSource::ServerObjectsQueue _srvObjects;
 	BuildingDataSource::ServerBuildingsQueue _srvBuildings;
+	SquadDataSource::ServerSquadsQueue _srvSquads;
+	SquadDataSource::ServerSquadsQueue _srvInstance;
+	SquadDataSource::ServerSquadsQueue _srvPlayerSquads;
+	QuestDataSource::ServerQuestsQueue _srvQuests;
+
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
+	Sqf::Value streamSquad( Sqf::Parameters params );
+	Sqf::Value streamPlayerSquad( Sqf::Parameters params );
+	Sqf::Value streamQuest( Sqf::Parameters params );
+	Sqf::Value streamInstance( Sqf::Parameters params );
 
 	Sqf::Value objectPublish(Sqf::Parameters params);
 	Sqf::Value objectInventory(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value buildingInventory(Sqf::Parameters params, bool byUID = false);
 	Sqf::Value objectDelete(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value buildingDelete(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value playerQuestDelete(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value squadDelete(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value playerSquadDelete(Sqf::Parameters params, bool byUID = false);
+
+	Sqf::Value squadPublish( Sqf::Parameters params );
+	Sqf::Value playerSquadPublish( Sqf::Parameters params );
+
 
 	Sqf::Value vehicleMoved(Sqf::Parameters params);
 	Sqf::Value vehicleDamaged(Sqf::Parameters params);
@@ -110,8 +134,6 @@ private:
 
 		//Unleashed
 	Sqf::Value buildingPublish(Sqf::Parameters params);
-	//Sqf::Value squadPublish(Sqf::Parameters params);
-	//Sqf::Value playerSquadPublish(Sqf::Parameters params);
-	//Sqf::Value instancePublish(Sqf::Parameters params);
+	Sqf::Value instancePublish(Sqf::Parameters params);
 
 };
