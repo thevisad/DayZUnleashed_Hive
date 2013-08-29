@@ -29,6 +29,7 @@ public:
 	~SqlCharDataSource();
 
 	Sqf::Value fetchCharacterInitial( string playerId, int serverId, const string& playerName ) override;
+	Sqf::Value fetchCharacterMedical( string playerId, int serverId) override;
 	Sqf::Value fetchCharacterDetails( int characterId ) override;
 	bool updateCharacter( int characterId, const FieldsType& fields ) override;
 	bool initCharacter( int characterId, const Sqf::Value& inventory, const Sqf::Value& backpack ) override;

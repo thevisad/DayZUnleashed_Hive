@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DataSource\AntiHackDataSource.h" />
     <ClInclude Include="DataSource\BuildingDataSource.h" />
     <ClInclude Include="DataSource\CharDataSource.h" />
     <ClInclude Include="DataSource\CustomDataSource.h" />
@@ -18,6 +19,7 @@
     <ClInclude Include="DataSource\InstanceDataSource.h" />
     <ClInclude Include="DataSource\ObjDataSource.h" />
     <ClInclude Include="DataSource\QuestDataSource.h" />
+    <ClInclude Include="DataSource\SqlAntiHackDataSource.h" />
     <ClInclude Include="DataSource\SqlBuildingDataSource.h" />
     <ClInclude Include="DataSource\SqlCharDataSource.h" />
     <ClInclude Include="DataSource\SqlDataSource.h" />
@@ -34,6 +36,7 @@
   <ItemGroup>
     <ClCompile Include="DataSource\CharDataSource.cpp" />
     <ClCompile Include="DataSource\CustomDataSource.cpp" />
+    <ClCompile Include="DataSource\SqlAntiHackDataSource.cpp" />
     <ClCompile Include="DataSource\SqlBuildingDataSource.cpp" />
     <ClCompile Include="DataSource\SqlCharDataSource.cpp" />
     <ClCompile Include="DataSource\SqlInstanceDataSource.cpp" />

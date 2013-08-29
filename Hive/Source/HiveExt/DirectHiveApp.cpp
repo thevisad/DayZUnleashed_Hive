@@ -27,6 +27,7 @@ DirectHiveApp::DirectHiveApp(string suffixDir) : HiveExtApp(suffixDir) {}
 #include "HiveLib/DataSource/SqlQuestDataSource.h"
 #include "HiveLib/DataSource/SqlSquadDataSource.h"
 #include "HiveLib/DataSource/SqlInstanceDataSource.h"
+#include "HiveLib/DataSource/SqlAntiHackDataSource.h"
 
 bool DirectHiveApp::initialiseService()
 {
@@ -34,7 +35,17 @@ bool DirectHiveApp::initialiseService()
 	{
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> globalDBConf(config().createView("Database"));
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> objDBConf(config().createView("ObjectDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> bldDBConf(config().createView("BuildingDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> instDBConf(config().createView("InstanceDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> sqdDBConf(config().createView("SquadDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> qstDBConf(config().createView("QuestDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> pqstDBConf(config().createView("PlayerQuestDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> psqdDBConf(config().createView("PlayerSquadDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> antiHackDBConf(config().createView("AntiHackDB"));
 
+
+
+		
 		try
 		{
 			Poco::Logger& dbLogger = Poco::Logger::get("Database");
@@ -50,6 +61,68 @@ bool DirectHiveApp::initialiseService()
 				if (!_objDb->initialise(objDBLogger,DatabaseLoader::MakeConnParams(objDBConf)))
 					return false;
 			}
+			_bldDb = _charDb;
+			if (bldDBConf->getBool("Use",false))
+			{
+				Poco::Logger& bldDBLogger = Poco::Logger::get("BuildingDB");
+				_bldDb = DatabaseLoader::Create(bldDBConf);
+				if (!_bldDb->initialise(bldDBLogger,DatabaseLoader::MakeConnParams(bldDBConf)))
+					return false;
+			}
+
+			//_instData,_sqdData,_psqdData,_plyQstData,_qstData
+			_instDb = _charDb;
+			if (instDBConf->getBool("Use",false))
+			{
+				Poco::Logger& instDBLogger = Poco::Logger::get("InstanceDB");
+				_instDb = DatabaseLoader::Create(instDBConf);
+				if (!_instDb->initialise(instDBLogger,DatabaseLoader::MakeConnParams(instDBConf)))
+					return false;
+			}
+
+			_sqdDb = _charDb;
+			if (sqdDBConf->getBool("Use",false))
+			{
+				Poco::Logger& sqdDBLogger = Poco::Logger::get("SquadDB");
+				_sqdDb = DatabaseLoader::Create(sqdDBConf);
+				if (!_sqdDb->initialise(sqdDBLogger,DatabaseLoader::MakeConnParams(sqdDBConf)))
+					return false;
+			}
+
+			_psqdDb = _charDb;
+			if (psqdDBConf->getBool("Use",false))
+			{
+				Poco::Logger& psqdDBLogger = Poco::Logger::get("PlayerSquadDB");
+				_psqdDb = DatabaseLoader::Create(psqdDBConf);
+				if (!_psqdDb->initialise(psqdDBLogger,DatabaseLoader::MakeConnParams(psqdDBConf)))
+					return false;
+			}
+			_qstDb = _charDb;
+			if (qstDBConf->getBool("Use",false))
+			{
+				Poco::Logger& qstDBLogger = Poco::Logger::get("QuestDB");
+				_qstDb = DatabaseLoader::Create(qstDBConf);
+				if (!_qstDb->initialise(qstDBLogger,DatabaseLoader::MakeConnParams(qstDBConf)))
+					return false;
+			}
+			_pqstDb = _charDb;
+			if (pqstDBConf->getBool("Use",false))
+			{
+				Poco::Logger& pqstDBLogger = Poco::Logger::get("PlayerQuestDB");
+				_pqstDb = DatabaseLoader::Create(pqstDBConf);
+				if (!_pqstDb->initialise(pqstDBLogger,DatabaseLoader::MakeConnParams(pqstDBConf)))
+					return false;
+			}
+
+			_antiHackDb = _charDb;
+			if (antiHackDBConf->getBool("Use",false))
+			{
+				Poco::Logger& antiHackDBLogger = Poco::Logger::get("AntiHackDB");
+				_antiHackDb = DatabaseLoader::Create(antiHackDBConf);
+				if (!_antiHackDb->initialise(antiHackDBLogger,DatabaseLoader::MakeConnParams(antiHackDBConf)))
+					return false;
+			}
+
 		}
 		catch (const DatabaseLoader::CreationError& e) 
 		{
@@ -73,13 +146,19 @@ bool DirectHiveApp::initialiseService()
 		_objData.reset(new SqlObjDataSource(logger(),_objDb,objConf.get()));
 	}
 
+	//Create antihack datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> antiHackConf(config().createView("AntiHack"));
+		_antihackData.reset(new SqlAntiHackDataSource(logger(),_antiHackDb,antiHackConf.get()));
+	}
+
 	//Building Datasource
 	//Create object datasource
 	{
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> bldConf(config().createView("Buildings"));
 		_bldData.reset(new SqlBuildingDataSource(logger(),_bldDb,bldConf.get()));
 	}
-
+	
 	//Instance Datasource
 	{
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> instConf(config().createView("Instance"));

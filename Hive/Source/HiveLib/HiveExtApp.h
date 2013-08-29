@@ -29,6 +29,7 @@
 #include "DataSource/SquadDataSource.h"
 #include "DataSource/QuestDataSource.h"
 #include "DataSource/InstanceDataSource.h"
+#include "DataSource/AntiHackDataSource.h"
 
 #include <boost/function.hpp>
 #include <boost/date_time.hpp>
@@ -64,6 +65,7 @@ protected:
 	int getServerId() const { return _serverId; }
 
 	unique_ptr<CharDataSource> _charData;
+	unique_ptr<AntiHackDataSource> _antihackData;
 	unique_ptr<ObjDataSource> _objData;
 	unique_ptr<CustomDataSource> _customData;
 	//Unleashed
@@ -88,13 +90,16 @@ private:
 
 	ObjDataSource::ServerObjectsQueue _srvObjects;
 	BuildingDataSource::ServerBuildingsQueue _srvBuildings;
+	BuildingDataSource::ServerBuildingsQueue _srvGarage;
 	SquadDataSource::ServerSquadsQueue _srvSquads;
 	SquadDataSource::ServerSquadsQueue _srvInstance;
 	SquadDataSource::ServerSquadsQueue _srvPlayerSquads;
 	QuestDataSource::ServerQuestsQueue _srvQuests;
+	AntiHackDataSource::AntiHackQueue _srvAntiHacks;
 
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
+	//Sqf::Value streamGarage(Sqf::Parameters params);
 	Sqf::Value streamSquad( Sqf::Parameters params );
 	Sqf::Value streamPlayerSquad( Sqf::Parameters params );
 	Sqf::Value streamQuest( Sqf::Parameters params );
@@ -117,9 +122,14 @@ private:
 	Sqf::Value vehicleDamaged(Sqf::Parameters params);
 
 	Sqf::Value loadPlayer(Sqf::Parameters params);
+	Sqf::Value loadPlayerMedical(Sqf::Parameters params);
 	Sqf::Value loadCharacterDetails(Sqf::Parameters params);
 	Sqf::Value recordCharacterLogin(Sqf::Parameters params);
-
+	
+	Sqf::Value loadAHBans(Sqf::Parameters params);
+	Sqf::Value loadAHAdmins(Sqf::Parameters params);
+	Sqf::Value loadAHWhiteList(Sqf::Parameters params);
+	
 	Sqf::Value playerUpdate(Sqf::Parameters params);
 	Sqf::Value playerInit(Sqf::Parameters params);
 	Sqf::Value playerDeath(Sqf::Parameters params);

@@ -29,5 +29,5 @@ public:
 protected:
 	bool initialiseService() override;
 private:
-	shared_ptr<Database> _charDb, _objDb, _instDb, _sqdDb, _psqdDb, _qstDb, _bldDb, _pqstDb;
+	shared_ptr<Database> _charDb, _objDb, _instDb, _sqdDb, _psqdDb, _qstDb, _bldDb, _pqstDb, _antiHackDb;
 };

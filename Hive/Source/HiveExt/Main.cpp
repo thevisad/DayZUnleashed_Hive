@@ -133,12 +133,21 @@ int main()
 	
 #else
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:1337:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:12662:[]:[]:[]:[false,false,false,false,false,false,true,10130.1,any,[0.837194,0],0,[0,0]]:false:false:0:0:0:0:[]:0:0:Survivor3_DZ:0:");
+	//|CHILD:201:11:[]:[]:[]:[]:false:false:0:0:0:0:[]:0:0::0:2:|
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:501:dayzunleashed.character_data:[""Medical""]:[[""CharacterID"",""="",""2""]]:[0,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:550:1:4:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:551:");
+	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:552:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:2:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:150:1:22773510:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:Fort_RazorWire:1280171525182331:[330.663,[12801.7,15251.8,0.243693]]:[]:[]:any:0:674:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:11:[]:[]:[]:[]:false:false:0:0:0:0:[]:0:0::0:2:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");
 	
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:101:23572678:1311:Audris:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:356:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:ACamp:22734334510:[248,[12784.5,14986,7.51e-04]]:[]:[]:22773510:285:345354:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:356:");
+	//										  |CHILD:400:1:Fort_RazorWire:12790215031911209:[208.744,[12790.2,15031.9,1.14432]]:[]:[]:929:0:514:|
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:Fort_RazorWire:12790215031911209:[208.744,[12790.2,15031.9,1.14432]]:[]:[]:929:0:514:");
 	//["CHILD:400:%1:%2:%3:%4:%5:%6:%7:%8:%9:",dayZ_instance,_uid,_class,_charID,_worldspace, [],[],_squad ,_combination];
 #endif
 

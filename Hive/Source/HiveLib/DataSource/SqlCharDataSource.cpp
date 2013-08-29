@@ -145,6 +145,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 
 		int generation = 1;
 		int humanity = 2500;
+		int classType = 0;
 		//try getting previous character info
 		{
 			auto prevCharRes = getDB()->queryParams(
@@ -222,12 +223,43 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 	return retVal;
 }
 
+
+
+
+Sqf::Value SqlCharDataSource::fetchCharacterMedical( string playerId, int serverId )
+{
+
+	Sqf::Value medical = lexical_cast<Sqf::Value>("[]"); //empty inventory
+	
+	//get the characters medical
+	{
+		auto newCharRes = getDB()->queryParams(
+			"SELECT character_data.Medical FROM character_data WHERE character_data.PlayerUID = '%s' AND character_data.Alive = 0 ORDER BY character_data.CharacterID DESC LIMIT 1", getDB()->escape(playerId).c_str());
+		if (!newCharRes || !newCharRes->fetchRow())
+		{
+			_logger.error("Error fetching created character for playerId " + playerId);
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ERROR"));
+			return retVal;
+		}
+		medical = lexical_cast<Sqf::Value>(newCharRes->at(0).getString());
+	}
+	_logger.information("Pulled Medical information '" + lexical_cast<string>(medical) + "' for player (" + playerId + ")" );
+	
+
+	Sqf::Parameters retVal;
+	retVal.push_back(string("PASS"));
+	retVal.push_back(medical);
+
+	return retVal;
+}
+
 Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 {
 	Sqf::Parameters retVal;
 	//get details from db
 	auto charDetRes = getDB()->queryParams(
-		"SELECT `%s`, `Medical`, `Generation`, `KillsZ`, `HeadshotsZ`, `KillsH`, `KillsB`, `CurrentState`, `Humanity` "
+		"SELECT `%s`, `Medical`, `Generation`, `KillsZ`, `HeadshotsZ`, `KillsH`, `KillsB`, `CurrentState`, `Humanity`, `Classtype` "
 		"FROM `Character_DATA` WHERE `CharacterID`=%d", _wsFieldName.c_str(), characterId);
 
 	if (charDetRes && charDetRes->fetchRow())
@@ -238,6 +270,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 		Sqf::Value stats = lexical_cast<Sqf::Value>("[0,0,0,0]"); //killsZ, headZ, killsH, killsB
 		Sqf::Value currentState = Sqf::Parameters(); //empty state (aiming, etc)
 		int humanity = 2500;
+		int classType = 0;
 		//get stuff from row
 		{
 			try
@@ -274,6 +307,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 				_logger.warning("Invalid CurrentState (detail load) for CharacterID("+lexical_cast<string>(characterId)+"): "+charDetRes->at(7).getString());
 			}
 			humanity = charDetRes->at(8).getInt32();
+			classType = charDetRes->at(9).getInt32();
 		}
 
 		retVal.push_back(string("PASS"));
@@ -282,6 +316,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 		retVal.push_back(currentState);
 		retVal.push_back(worldSpace);
 		retVal.push_back(humanity);
+		retVal.push_back(classType);
 	}
 	else
 	{
@@ -317,7 +352,7 @@ bool SqlCharDataSource::updateCharacter( int characterId, const FieldsType& fiel
 		}
 		//addition integeroids
 		else if (name == "KillsZ" || name == "HeadshotsZ" || name == "DistanceFoot" || name == "Duration" ||
-			name == "KillsH" || name == "KillsB" || name == "Humanity")
+			name == "KillsH" || name == "KillsB" || name == "Humanity" )
 		{
 			int integeroid = static_cast<int>(Sqf::GetDouble(val));
 			char intSign = '+';
@@ -333,6 +368,12 @@ bool SqlCharDataSource::updateCharacter( int characterId, const FieldsType& fiel
 		//strings
 		else if (name == "Model")
 			sqlFields[name] = "'"+getDB()->escape(boost::get<string>(val))+"'";
+
+		//integers
+		else if (name == "Classtype")
+		{
+			sqlFields[name] = "'"+getDB()->escape(lexical_cast<string>(val))+"'";
+		}
 	}
 
 	if (sqlFields.size() > 0)
