@@ -154,7 +154,7 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	//handlers[602] = boost::bind(&HiveExtApp::streamPlayerSquad,this,_1);		
 	//handlers[603] = boost::bind(&HiveExtApp::streamInstance,this,_1);
 	//handlers[604] = boost::bind(&HiveExtApp::streamQuest,this,_1);
-	//handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
+	handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
 
 	//Inventory
 	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false);
@@ -175,6 +175,8 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	handlers[102] = boost::bind(&HiveExtApp::loadCharacterDetails,this,_1);
 	handlers[103] = boost::bind(&HiveExtApp::recordCharacterLogin,this,_1);
 	handlers[150] = boost::bind(&HiveExtApp::loadPlayerMedical,this,_1);
+	handlers[151] = boost::bind(&HiveExtApp::loadCharacterVariables,this,_1);
+	handlers[152] = boost::bind(&HiveExtApp::recordCharacterVariables,this,_1);
 
 	//character updates
 	handlers[201] = boost::bind(&HiveExtApp::playerUpdate,this,_1);
@@ -464,7 +466,7 @@ Sqf::Value HiveExtApp::loadAHWhiteList( Sqf::Parameters params )
 	}
 }
 
-/*
+
 Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
 {
 	if (_srvGarage.empty())
@@ -487,7 +489,7 @@ Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
 
 		return retVal;
 	}
-}*/
+}
 
 Sqf::Value HiveExtApp::streamSquad( Sqf::Parameters params )
 {
@@ -774,7 +776,12 @@ Sqf::Value HiveExtApp::loadPlayerMedical( Sqf::Parameters params )
 	return _charData->fetchCharacterMedical(playerId,getServerId());
 }
 
+Sqf::Value HiveExtApp::loadCharacterVariables( Sqf::Parameters params )
+{
+	string playerId = Sqf::GetStringAny(params.at(0));
 
+	return _charData->fetchCharacterVariables(playerId);
+}
 
 Sqf::Value HiveExtApp::loadCharacterDetails( Sqf::Parameters params )
 {
@@ -926,6 +933,14 @@ Sqf::Value HiveExtApp::playerInit( Sqf::Parameters params )
 	Sqf::Value backpack = boost::get<Sqf::Parameters>(params.at(2));
 
 	return ReturnBooleanStatus(_charData->initCharacter(characterId,inventory,backpack));
+}
+
+Sqf::Value HiveExtApp::recordCharacterVariables( Sqf::Parameters params )
+{
+	int characterId = Sqf::GetIntAny(params.at(0));
+	Sqf::Value inventory = boost::get<Sqf::Parameters>(params.at(1));
+
+	return ReturnBooleanStatus(_charData->updateVariables(characterId,inventory));
 }
 
 Sqf::Value HiveExtApp::playerDeath( Sqf::Parameters params )

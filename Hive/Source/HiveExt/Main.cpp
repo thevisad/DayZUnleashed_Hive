@@ -137,10 +137,15 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:501:dayzunleashed.character_data:[""Medical""]:[[""CharacterID"",""="",""2""]]:[0,1]:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:550:1:4:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:551:");
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:552:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:552:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:2:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:150:1:22773510:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:Fort_RazorWire:1280171525182331:[330.663,[12801.7,15251.8,0.243693]]:[]:[]:any:0:674:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:168:[1,2,3,4,5,6,7]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:150:1:22773510:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:168:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:168:[1,2,3,4,5,6,7]:");
+	
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:2:WoodGate_DZ:32432432322342:[40.1727,[13040.8,15735,0.0169253]]:[]:[]:143:0:907:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:11:[]:[]:[]:[]:false:false:0:0:0:0:[]:0:0::0:2:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");
 	

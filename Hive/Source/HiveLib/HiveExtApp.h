@@ -99,7 +99,7 @@ private:
 
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
-	//Sqf::Value streamGarage(Sqf::Parameters params);
+	Sqf::Value streamGarage(Sqf::Parameters params);
 	Sqf::Value streamSquad( Sqf::Parameters params );
 	Sqf::Value streamPlayerSquad( Sqf::Parameters params );
 	Sqf::Value streamQuest( Sqf::Parameters params );
@@ -123,6 +123,8 @@ private:
 
 	Sqf::Value loadPlayer(Sqf::Parameters params);
 	Sqf::Value loadPlayerMedical(Sqf::Parameters params);
+	Sqf::Value recordCharacterVariables(Sqf::Parameters params);
+	Sqf::Value loadCharacterVariables(Sqf::Parameters params);
 	Sqf::Value loadCharacterDetails(Sqf::Parameters params);
 	Sqf::Value recordCharacterLogin(Sqf::Parameters params);
 	

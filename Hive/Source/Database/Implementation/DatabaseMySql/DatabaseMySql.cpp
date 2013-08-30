@@ -105,11 +105,11 @@ MySQLConnection::MySQLConnection( ConcreteDatabase& db, const Database::KeyValue
 	std::string portOrSocket;
 	
 			_host ="127.0.0.1";//local hive
-			//_host ="63.141.230.170"; //external users
 			//_host = "162.213.194.138";
 			portOrSocket = "3306";
 			_user = "dayzserver";//official
 			_password = "20hng-1erthdayz243"; //official
+			//_password = "dayzunleashed"; //official
 			//_user = "redbone";//local
 			//_password = "hound"; //local
 			//_database = "dunleashed"; //official
