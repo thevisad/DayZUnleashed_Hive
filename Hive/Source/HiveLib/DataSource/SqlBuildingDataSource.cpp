@@ -145,7 +145,7 @@ void SqlBuildingDataSource::populateBuildings( int serverId, ServerBuildingsQueu
 		queue.push(bldParams);
 	}
 }
-
+/*
 void SqlBuildingDataSource::populateGarageVehicles( int serverId, Int64 buildingUID  )
 {
 
@@ -197,7 +197,7 @@ void SqlBuildingDataSource::populateGarageVehicles( int serverId, Int64 building
 
 		queue.push(bldParams);
 	}
-}
+}*/
 
 
 bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory )

@@ -27,6 +27,7 @@ public:
 
 	virtual Sqf::Value fetchCharacterInitial( string playerId, int serverId, const string& playerName ) = 0;
 	virtual Sqf::Value fetchCharacterMedical( string playerId, int serverId) = 0;
+	virtual Sqf::Value fetchCustomInventory( string playerId ) = 0;
 	virtual Sqf::Value fetchCharacterVariables( string playerId ) = 0;
 	virtual Sqf::Value fetchCharacterDetails( int characterId ) = 0;
 	typedef map<string,Sqf::Value> FieldsType;

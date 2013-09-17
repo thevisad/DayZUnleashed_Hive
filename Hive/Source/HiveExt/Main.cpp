@@ -132,19 +132,28 @@ int main()
 	}
 	
 #else
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:1337:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:2:");
 	//|CHILD:201:11:[]:[]:[]:[]:false:false:0:0:0:0:[]:0:0::0:2:|
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:501:dayzunleashed.character_data:[""Medical""]:[[""CharacterID"",""="",""2""]]:[0,1]:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:550:1:4:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:550:2:1:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:551:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:421:2:HNGamers:22773510:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:422:1:22773510:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:220:1:");
+	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:221:22773510:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:552:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:2:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:150:1:22773510:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:168:[1,2,3,4,5,6,7]:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:150:1:22773510:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:168:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:168:[1,2,3,4,5,6,7]:");
-	
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[1,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[2,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[3,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[4,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[5,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[6,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:169:[7,1,1,1]:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:21375:[299,[12617.9,15447.4,0.002]]:[]:[]:[false,false,false,false,false,false,false,12000,[],[0,0],0,[0.05,50.684]]:false:false:0:0:3267:1:[,aidlpercmstpsnonwnondnon_player_idlesteady04,40]:0:0:TheVisad_DZU:0:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:2:WoodGate_DZ:32432432322342:[40.1727,[13040.8,15735,0.0169253]]:[]:[]:143:0:907:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:11:[]:[]:[]:[]:false:false:0:0:0:0:[]:0:0::0:2:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");

@@ -28,6 +28,7 @@ DirectHiveApp::DirectHiveApp(string suffixDir) : HiveExtApp(suffixDir) {}
 #include "HiveLib/DataSource/SqlSquadDataSource.h"
 #include "HiveLib/DataSource/SqlInstanceDataSource.h"
 #include "HiveLib/DataSource/SqlAntiHackDataSource.h"
+#include "HiveLib/DataSource/SqlMessagingDataSource.h"
 
 bool DirectHiveApp::initialiseService()
 {
@@ -42,6 +43,7 @@ bool DirectHiveApp::initialiseService()
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> pqstDBConf(config().createView("PlayerQuestDB"));
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> psqdDBConf(config().createView("PlayerSquadDB"));
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> antiHackDBConf(config().createView("AntiHackDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> messagingDBConf(config().createView("MessagingDB"));
 
 
 
@@ -123,6 +125,15 @@ bool DirectHiveApp::initialiseService()
 					return false;
 			}
 
+			_messagingDb = _charDb;
+			if (messagingDBConf->getBool("Use",false))
+			{
+				Poco::Logger& messagingDBLogger = Poco::Logger::get("MessagingDB");
+				_messagingDb = DatabaseLoader::Create(messagingDBConf);
+				if (!_messagingDb->initialise(messagingDBLogger,DatabaseLoader::MakeConnParams(messagingDBConf)))
+					return false;
+			}
+
 		}
 		catch (const DatabaseLoader::CreationError& e) 
 		{
@@ -189,6 +200,11 @@ bool DirectHiveApp::initialiseService()
 		_qstData.reset(new SqlQuestDataSource(logger(),_pqstDb,qstConf.get()));
 	}
 
+	//Messaging Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> messagingConf(config().createView("Messaging"));
+		_msgData.reset(new SqlMessagingDataSource(logger(),_messagingDb,messagingConf.get()));
+	}
 	//Create custom datasource
 	_customData.reset(new CustomDataSource(logger(),_charDb,_objDb));
 

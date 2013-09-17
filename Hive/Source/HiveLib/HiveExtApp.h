@@ -30,6 +30,7 @@
 #include "DataSource/QuestDataSource.h"
 #include "DataSource/InstanceDataSource.h"
 #include "DataSource/AntiHackDataSource.h"
+#include "DataSource/MessagingDataSource.h"
 
 #include <boost/function.hpp>
 #include <boost/date_time.hpp>
@@ -76,6 +77,7 @@ protected:
 	unique_ptr<SquadDataSource> _sqdData;
 	unique_ptr<SquadDataSource> _psqdData;
 	unique_ptr<InstanceDataSource> _instData;
+	unique_ptr<MessagingDataSource> _msgData;
 
 	string _initKey;
 private:
@@ -96,10 +98,12 @@ private:
 	SquadDataSource::ServerSquadsQueue _srvPlayerSquads;
 	QuestDataSource::ServerQuestsQueue _srvQuests;
 	AntiHackDataSource::AntiHackQueue _srvAntiHacks;
+	MessagingDataSource::ServerMessagingQueue _srvMessaging;
 
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
-	Sqf::Value streamGarage(Sqf::Parameters params);
+	Sqf::Value streamMessages(Sqf::Parameters params);
+	//Sqf::Value streamGarage(Sqf::Parameters params);
 	Sqf::Value streamSquad( Sqf::Parameters params );
 	Sqf::Value streamPlayerSquad( Sqf::Parameters params );
 	Sqf::Value streamQuest( Sqf::Parameters params );
@@ -123,6 +127,7 @@ private:
 
 	Sqf::Value loadPlayer(Sqf::Parameters params);
 	Sqf::Value loadPlayerMedical(Sqf::Parameters params);
+	Sqf::Value loadCustomInventory(Sqf::Parameters params);
 	Sqf::Value recordCharacterVariables(Sqf::Parameters params);
 	Sqf::Value loadCharacterVariables(Sqf::Parameters params);
 	Sqf::Value loadCharacterDetails(Sqf::Parameters params);

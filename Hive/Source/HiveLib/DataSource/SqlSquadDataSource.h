@@ -33,8 +33,8 @@ public:
 	void populateSquads( int serverId, ServerSquadsQueue& queue ) override;
 	void populatePlayerSquads( int serverId, ServerSquadsQueue& queue ) override;
 	bool deleteSquad( int serverId, Int64 squadIdent, bool byUID ) override;
-	bool deletePlayerSquad( int serverId, Int64 playerSquadIdent, bool byUID ) override;
-	bool createSquad( int serverId, const string& squadName ) override;
+	bool deletePlayerSquad( int characterId, Int64 playerSquadIdent, bool byUID ) override;
+	bool createSquad( int serverId, const string& squadName, int characterId) override;
 	bool createPlayerSquad( int squadId, int characterId ) override;
 private:
 	string _SquadTableName;

@@ -143,8 +143,8 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 
 	//Publish
 	handlers[400] = boost::bind(&HiveExtApp::buildingPublish,this,_1);
-	//handlers[421] = boost::bind(&HiveExtApp::squadPublish,this,_1);
-	//handlers[422] = boost::bind(&HiveExtApp::playerSquadPublish,this,_1);
+	handlers[421] = boost::bind(&HiveExtApp::squadPublish,this,_1);
+	handlers[422] = boost::bind(&HiveExtApp::playerSquadPublish,this,_1);
 	//handlers[423] = boost::bind(&HiveExtApp::instancePublish,this,_1);
 
 
@@ -154,8 +154,12 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	//handlers[602] = boost::bind(&HiveExtApp::streamPlayerSquad,this,_1);		
 	//handlers[603] = boost::bind(&HiveExtApp::streamInstance,this,_1);
 	//handlers[604] = boost::bind(&HiveExtApp::streamQuest,this,_1);
-	handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
+	//handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
 
+
+	//Messaging/Custom inventory
+	handlers[220] = boost::bind(&HiveExtApp::streamMessages,this,_1);	
+	handlers[221] = boost::bind(&HiveExtApp::loadCustomInventory,this,_1);
 	//Inventory
 	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false);
 	//handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1,true);
@@ -325,6 +329,7 @@ Sqf::Value HiveExtApp::getDateTime( Sqf::Parameters params )
 #include "DataSource/SquadDataSource.h"
 #include "DataSource/QuestDataSource.h"
 #include "DataSource/InstanceDataSource.h"
+#include "DataSource/MessagingDataSource.h"
 #include "DataSource/SquadDataSource.h"
 #include <Poco/RandomStream.h>
 
@@ -352,6 +357,7 @@ Sqf::Value HiveExtApp::streamObjects( Sqf::Parameters params )
 
 			Sqf::Parameters retVal;
 			retVal.push_back(string("ObjectStreamStart"));
+			int test = static_cast<int>(_srvObjects.size());
 			retVal.push_back(static_cast<int>(_srvObjects.size()));
 			retVal.push_back(_initKey);
 			return retVal;
@@ -385,6 +391,7 @@ Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 			_bldData->populateBuildings(serverId, _srvBuildings);
 			Sqf::Parameters retVal;
 			retVal.push_back(string("BuildingStreamStart"));
+			int test = static_cast<int>(_srvBuildings.size());
 			retVal.push_back(static_cast<int>(_srvBuildings.size()));
 			//retVal.push_back(_initKey);
 			return retVal;
@@ -393,6 +400,31 @@ Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 	{
 		Sqf::Parameters retVal = _srvBuildings.front();
 		_srvBuildings.pop();
+
+		return retVal;
+	}
+}
+
+
+
+Sqf::Value HiveExtApp::streamMessages( Sqf::Parameters params )
+{
+	if (_srvMessaging.empty())
+	{
+
+			int serverId = boost::get<int>(params.at(0));
+			setServerId(serverId);
+			_msgData->populateMessages(serverId, _srvMessaging);
+			Sqf::Parameters retVal;
+			retVal.push_back(string("MessagingStreamStart"));
+			retVal.push_back(static_cast<int>(_srvMessaging.size()));
+			//retVal.push_back(_initKey);
+			return retVal;
+	}
+	else
+	{
+		Sqf::Parameters retVal = _srvMessaging.front();
+		_srvMessaging.pop();
 
 		return retVal;
 	}
@@ -431,6 +463,7 @@ Sqf::Value HiveExtApp::loadAHBans( Sqf::Parameters params )
 
 		Sqf::Parameters retVal;
 		retVal.push_back(string("AntiHackStreamStart"));
+		int test = static_cast<int>(_srvAntiHacks.size());
 		retVal.push_back(static_cast<int>(_srvAntiHacks.size()));
 		//retVal.push_back(_initKey);
 		return retVal;
@@ -467,7 +500,7 @@ Sqf::Value HiveExtApp::loadAHWhiteList( Sqf::Parameters params )
 }
 
 
-Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
+/*Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
 {
 	if (_srvGarage.empty())
 	{
@@ -489,7 +522,7 @@ Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
 
 		return retVal;
 	}
-}
+}*/
 
 Sqf::Value HiveExtApp::streamSquad( Sqf::Parameters params )
 {
@@ -645,10 +678,11 @@ Sqf::Value HiveExtApp::squadDelete( Sqf::Parameters params, bool byUID /*= false
 
 Sqf::Value HiveExtApp::playerSquadDelete( Sqf::Parameters params, bool byUID /*= false*/ )
 {
-	Int64 playerSquadIdent = Sqf::GetBigInt(params.at(0));
+	int characterId = Sqf::GetIntAny(params.at(0));
+	Int64 playerSquadIdent = Sqf::GetBigInt(params.at(1));
 
 	if (playerSquadIdent != 0) //all the vehicles have objectUID = 0, so it would be bad to delete those
-		return ReturnBooleanStatus(_plySqdData->deletePlayerSquad(getServerId(),playerSquadIdent,byUID));
+		return ReturnBooleanStatus(_plySqdData->deletePlayerSquad(characterId,playerSquadIdent,byUID));
 
 	return ReturnBooleanStatus(true);
 }
@@ -735,17 +769,19 @@ Sqf::Value HiveExtApp::instancePublish( Sqf::Parameters params )
 
 Sqf::Value HiveExtApp::squadPublish( Sqf::Parameters params )
 {
+	int serverID = Sqf::GetIntAny(params.at(0));
 	string squadName = boost::get<string>(params.at(1));
+	int characterId = Sqf::GetIntAny(params.at(2));
 
-	return ReturnBooleanStatus(_sqdData->createSquad(getServerId(),squadName));
+	return ReturnBooleanStatus(_sqdData->createSquad(serverID,squadName,characterId));
 }
 
 Sqf::Value HiveExtApp::playerSquadPublish( Sqf::Parameters params )
 {
-	int squadId = Sqf::GetIntAny(params.at(1));
-	int characterId = Sqf::GetIntAny(params.at(2));
+	int squadId = Sqf::GetIntAny(params.at(0));
+	int characterId = Sqf::GetIntAny(params.at(1));
 
-	return ReturnBooleanStatus(_plySqdData->createPlayerSquad(squadId,characterId));
+	return ReturnBooleanStatus(_sqdData->createPlayerSquad(squadId,characterId));
 }
 /*
 Sqf::Value HiveExtApp::instancePublish( Sqf::Parameters params )
@@ -774,6 +810,13 @@ Sqf::Value HiveExtApp::loadPlayerMedical( Sqf::Parameters params )
 	string playerId = Sqf::GetStringAny(params.at(0));
 
 	return _charData->fetchCharacterMedical(playerId,getServerId());
+}
+
+Sqf::Value HiveExtApp::loadCustomInventory( Sqf::Parameters params )
+{
+	string playerId = Sqf::GetStringAny(params.at(0));
+
+	return _charData->fetchCustomInventory(playerId);
 }
 
 Sqf::Value HiveExtApp::loadCharacterVariables( Sqf::Parameters params )
@@ -909,15 +952,10 @@ Sqf::Value HiveExtApp::playerUpdate( Sqf::Parameters params )
 			int humanityDiff = static_cast<int>(Sqf::GetDouble(params.at(15)));
 			if (humanityDiff != 0) fields["Humanity"] = humanityDiff;
 		}
-		if (!Sqf::IsNull(params.at(16)))
-		{
-			int classType = boost::get<int>(params.at(16));
-			if (classType != 0) fields["Classtype"] = classType;
-		}
 	}
 	catch (const std::out_of_range&)
 	{
-		logger().warning("Update of character " + lexical_cast<string>(characterId) + " only had " + lexical_cast<string>(params.size()) + " parameters out of 17");
+		logger().warning("Update of character " + lexical_cast<string>(characterId) + " only had " + lexical_cast<string>(params.size()) + " parameters out of 16");
 	}
 
 	if (fields.size() > 0)
@@ -938,9 +976,9 @@ Sqf::Value HiveExtApp::playerInit( Sqf::Parameters params )
 Sqf::Value HiveExtApp::recordCharacterVariables( Sqf::Parameters params )
 {
 	int characterId = Sqf::GetIntAny(params.at(0));
-	Sqf::Value inventory = boost::get<Sqf::Parameters>(params.at(1));
+	Sqf::Value variables = boost::get<Sqf::Parameters>(params.at(1));
 
-	return ReturnBooleanStatus(_charData->updateVariables(characterId,inventory));
+	return ReturnBooleanStatus(_charData->updateVariables(characterId,variables));
 }
 
 Sqf::Value HiveExtApp::playerDeath( Sqf::Parameters params )

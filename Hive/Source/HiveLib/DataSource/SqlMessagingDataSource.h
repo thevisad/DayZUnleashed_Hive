@@ -18,16 +18,22 @@
 
 #pragma once
 
-#include "Shared/Common/Types.h"
-#include "HiveLib/HiveExtApp.h"
+#include "SqlDataSource.h"
+#include "MessagingDataSource.h"
+#include "Database/SqlStatement.h"
 
-class Database;
-class DirectHiveApp: public HiveExtApp
+namespace Poco { namespace Util { class AbstractConfiguration; }; };
+class SqlMessagingDataSource : public SqlDataSource, public MessagingDataSource
 {
 public:
-	DirectHiveApp(string suffixDir);
-protected:
-	bool initialiseService() override;
+
+	SqlMessagingDataSource(Poco::Logger& logger, shared_ptr<Database> db, const Poco::Util::AbstractConfiguration* conf);
+	~SqlMessagingDataSource() {}
+
+	void populateMessages( int serverId, ServerMessagingQueue& queue ) override;
+
 private:
-	shared_ptr<Database> _charDb, _objDb, _instDb, _sqdDb, _psqdDb, _qstDb, _bldDb, _pqstDb, _antiHackDb, _messagingDb;
+	string _MessagingTableName;
+
+	SqlStatementID _stmtCreateMessaging;
 };

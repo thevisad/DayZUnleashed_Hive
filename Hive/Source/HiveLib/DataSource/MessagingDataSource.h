@@ -18,16 +18,13 @@
 
 #pragma once
 
-#include "Shared/Common/Types.h"
-#include "HiveLib/HiveExtApp.h"
+#include "DataSource.h"
 
-class Database;
-class DirectHiveApp: public HiveExtApp
+class MessagingDataSource
 {
 public:
-	DirectHiveApp(string suffixDir);
-protected:
-	bool initialiseService() override;
-private:
-	shared_ptr<Database> _charDb, _objDb, _instDb, _sqdDb, _psqdDb, _qstDb, _bldDb, _pqstDb, _antiHackDb, _messagingDb;
+	virtual ~MessagingDataSource() {}
+
+	typedef std::queue<Sqf::Parameters> ServerMessagingQueue;
+	virtual void populateMessages( int serverId, ServerMessagingQueue& queue ) = 0;
 };

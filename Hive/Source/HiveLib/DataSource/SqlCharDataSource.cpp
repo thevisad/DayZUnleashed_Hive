@@ -40,7 +40,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 		if (playerRes && playerRes->fetchRow())
 		{
 			newPlayer = false;
-			//update player name if not current
+			//update player name if not current 
 			if (playerRes->at(0).getString() != playerName)
 			{
 				auto stmt = getDB()->makeStatement(_stmtChangePlayerName, "UPDATE `Player_DATA` SET `PlayerName`=? WHERE `"+_idFieldName+"`=?");
@@ -145,7 +145,6 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 
 		int generation = 1;
 		int humanity = 2500;
-		int classType = 0;
 		//try getting previous character info
 		{
 			auto prevCharRes = getDB()->queryParams(
@@ -223,9 +222,6 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 	return retVal;
 }
 
-
-
-
 Sqf::Value SqlCharDataSource::fetchCharacterMedical( string playerId, int serverId )
 {
 
@@ -254,6 +250,40 @@ Sqf::Value SqlCharDataSource::fetchCharacterMedical( string playerId, int server
 	return retVal;
 }
 
+
+Sqf::Value SqlCharDataSource::fetchCustomInventory( string playerId )
+{
+
+	Sqf::Value inventory = lexical_cast<Sqf::Value>("[]"); //empty inventory
+	Sqf::Value backpack = lexical_cast<Sqf::Value>("[]"); //empty inventory
+	string model = ""; //empty inventory
+	
+	//get the characters medical
+	{
+		auto CharRes = getDB()->queryParams(
+			"select replace(cl.`inventory`, '""', '""""') inventory, replace(cl.`backpack`, '""', '""""') backpack, replace(coalesce(cl.`model`, 'Survivor2_DZ'), '""', '""""') model from `cust_loadout` cl join `cust_loadout_profile` clp on clp.`cust_loadout_id` = cl.`id` where clp.`unique_id` = '%s'", getDB()->escape(playerId).c_str());
+		if (!CharRes || !CharRes->fetchRow())
+		{
+			_logger.error("Error fetching created character for playerId " + playerId);
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ERROR"));
+			return retVal;
+		}
+		inventory = lexical_cast<Sqf::Value>(CharRes->at(0).getString());
+		backpack = lexical_cast<Sqf::Value>(CharRes->at(1).getString());
+		model = CharRes->at(2).getString();
+	}
+	_logger.information("Pulled custom inventory for player (" + playerId + ")" );
+	
+
+	Sqf::Parameters retVal;
+	retVal.push_back(string("PASS"));
+	retVal.push_back(inventory);
+	retVal.push_back(backpack);
+	retVal.push_back(model);
+
+	return retVal;
+}
 
 Sqf::Value SqlCharDataSource::fetchCharacterVariables( string playerId )
 {
@@ -288,7 +318,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 	Sqf::Parameters retVal;
 	//get details from db
 	auto charDetRes = getDB()->queryParams(
-		"SELECT `%s`, `Medical`, `Generation`, `KillsZ`, `HeadshotsZ`, `KillsH`, `KillsB`, `CurrentState`, `Humanity`, `Classtype` "
+		"SELECT `%s`, `Medical`, `Generation`, `KillsZ`, `HeadshotsZ`, `KillsH`, `KillsB`, `CurrentState`, `Humanity` "
 		"FROM `Character_DATA` WHERE `CharacterID`=%d", _wsFieldName.c_str(), characterId);
 
 	if (charDetRes && charDetRes->fetchRow())
@@ -299,7 +329,6 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 		Sqf::Value stats = lexical_cast<Sqf::Value>("[0,0,0,0]"); //killsZ, headZ, killsH, killsB
 		Sqf::Value currentState = Sqf::Parameters(); //empty state (aiming, etc)
 		int humanity = 2500;
-		int classType = 0;
 		//get stuff from row
 		{
 			try
@@ -336,7 +365,6 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 				_logger.warning("Invalid CurrentState (detail load) for CharacterID("+lexical_cast<string>(characterId)+"): "+charDetRes->at(7).getString());
 			}
 			humanity = charDetRes->at(8).getInt32();
-			classType = charDetRes->at(9).getInt32();
 		}
 
 		retVal.push_back(string("PASS"));
@@ -345,7 +373,6 @@ Sqf::Value SqlCharDataSource::fetchCharacterDetails( int characterId )
 		retVal.push_back(currentState);
 		retVal.push_back(worldSpace);
 		retVal.push_back(humanity);
-		retVal.push_back(classType);
 	}
 	else
 	{
@@ -398,11 +425,6 @@ bool SqlCharDataSource::updateCharacter( int characterId, const FieldsType& fiel
 		else if (name == "Model")
 			sqlFields[name] = "'"+getDB()->escape(boost::get<string>(val))+"'";
 
-		//integers
-		else if (name == "Classtype")
-		{
-			sqlFields[name] = "'"+getDB()->escape(lexical_cast<string>(val))+"'";
-		}
 	}
 
 	if (sqlFields.size() > 0)
@@ -429,35 +451,86 @@ bool SqlCharDataSource::updateCharacter( int characterId, const FieldsType& fiel
 	return true;
 }
 
+/*
 bool SqlCharDataSource::updateVariables( int characterId, const Sqf::Value& variables)
 {
 
 	Sqf::Parameters retVal;
 	//get details from db
-	auto characterVariables(getDB()->queryParams(
-		"select char_var from character_variables where characterID = %d", characterId));
-
-	bool exRes;
-	if (characterVariables && characterVariables->fetchRow())
 	{
-		auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update character_variables set character_variables.char_var = ? where `CharacterID` = ?");
-		stmt->addString(lexical_cast<string>(variables));
-		stmt->addInt32(characterId);
-		exRes = stmt->execute();
+		auto characterVariables(getDB()->queryParams("select char_var from character_variables where characterID = %d", characterId));
+		bool exRes;
+		Sleep(5000);
+		if (characterVariables && characterVariables->fetchRow())
+		{
+			auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update character_variables set character_variables.char_var = ? where `CharacterID` = ?");
+			stmt->addString(lexical_cast<string>(variables));
+			stmt->addInt32(characterId);
+			exRes = stmt->execute();
+			poco_assert(exRes == true);
+			_logger.information(" Updated variables for character " + characterId);
+			return exRes;
+		}
+		else 
+		{
+			auto stmt = getDB()->makeStatement(_stmtInsertCharacterVariables,"insert into character_variables set character_variables.char_var = ?, character_variables.characterID = ?");
+			stmt->addString(lexical_cast<string>(variables));
+			stmt->addInt32(characterId);
+			exRes = stmt->execute();
+			poco_assert(exRes == true);
+			_logger.information(" Inserted variables for character " + characterId);
+			return exRes;
+		}
+		
 	}
-	else 
-	{
-		auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"insert into character_variables set character_variables.char_var = ?, character_variables.characterID = ?");
-		stmt->addString(lexical_cast<string>(variables));
-		stmt->addInt32(characterId);
-		exRes = stmt->execute();
-	}
-	
-	poco_assert(exRes == true);
-
-	return exRes;
 }
+*/
 
+bool SqlCharDataSource::updateVariables( int characterId, const Sqf::Value& variables)
+{
+
+	Sqf::Parameters retVal;
+	int survivalArr;
+	int testing;
+	//get details from db
+	{
+		auto characterVariables(getDB()->queryParams("SELECT Count(*) FROM character_variables where characterID = %d", characterId));
+		while (characterVariables && characterVariables->fetchRow())
+		{
+			try {
+				auto row = characterVariables->fields();
+				survivalArr=0;
+				survivalArr = characterVariables->at(0).getInt32();
+			}
+			catch (const bad_lexical_cast&)
+			{
+				_logger.error("Skipping variables for character " + lexical_cast<string>(characterId) + " invalid data in db");
+				continue;
+			}
+		}
+		bool exRes;
+		if (survivalArr >= 1)
+		{
+			auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update character_variables set character_variables.char_var = ? where `CharacterID` = ?");
+			stmt->addString(lexical_cast<string>(variables));
+			stmt->addInt32(characterId);
+			exRes = stmt->execute();
+			poco_assert(exRes == true);
+			_logger.information(" Updated variables for character " + characterId);
+			return exRes;
+		}
+		else if (survivalArr == 0) 
+		{
+			auto stmt = getDB()->makeStatement(_stmtInsertCharacterVariables,"insert into character_variables set character_variables.char_var = ?, character_variables.characterID = ?");
+			stmt->addString(lexical_cast<string>(variables));
+			stmt->addInt32(characterId);
+			exRes = stmt->execute();
+			poco_assert(exRes == true);
+			_logger.information(" Inserted variables for character " + characterId);
+			return exRes;
+		}
+	}
+}
 
 bool SqlCharDataSource::initCharacter( int characterId, const Sqf::Value& inventory, const Sqf::Value& backpack )
 {

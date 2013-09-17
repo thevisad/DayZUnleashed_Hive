@@ -31,7 +31,5 @@ public:
 	virtual bool deleteInstance( int serverId, Int64 InstanceIdent, bool byUID ) = 0;
 	virtual bool deletePlayerInstance( int serverId, Int64 playerInstanceIdent, bool byUID ) = 0;
 	virtual bool createPlayerInstance( int InstanceId, int characterId ) = 0;
-
-	//Unleashed
 	virtual bool createInstance( int serverId, const string& InstanceName ) = 0;
 };

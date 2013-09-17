@@ -30,6 +30,7 @@ public:
 
 	Sqf::Value fetchCharacterInitial( string playerId, int serverId, const string& playerName ) override;
 	Sqf::Value fetchCharacterMedical( string playerId, int serverId) override;
+	Sqf::Value fetchCustomInventory( string playerId ) override;
 	Sqf::Value fetchCharacterVariables( string playerId ) override;
 	Sqf::Value fetchCharacterDetails( int characterId ) override;
 	bool updateCharacter( int characterId, const FieldsType& fields ) override;
@@ -49,6 +50,7 @@ private:
 	SqlStatementID _stmtInsertNewCharacter;
 	SqlStatementID _stmtInitCharacter;
 	SqlStatementID _stmtUpdateCharacterVariables;
+	SqlStatementID _stmtInsertCharacterVariables;
 	SqlStatementID _stmtKillCharacter;
 	SqlStatementID _stmtRecordLogin;
 };

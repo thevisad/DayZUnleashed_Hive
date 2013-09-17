@@ -29,9 +29,9 @@ public:
 	virtual void populateSquads( int serverId, ServerSquadsQueue& queue ) = 0;
 	virtual void populatePlayerSquads( int serverId, ServerSquadsQueue& queue ) = 0;
 	virtual bool deleteSquad( int serverId, Int64 squadIdent, bool byUID ) = 0;
-	virtual bool deletePlayerSquad( int serverId, Int64 playerSquadIdent, bool byUID ) = 0;
+	virtual bool deletePlayerSquad( int characterId, Int64 playerSquadIdent, bool byUID ) = 0;
 	virtual bool createPlayerSquad( int squadId, int characterId ) = 0;
 
 	//Unleashed
-	virtual bool createSquad( int serverId, const string& squadName ) = 0;
+	virtual bool createSquad( int serverId, const string& squadName, int characterId) = 0;
 };

@@ -37,6 +37,9 @@
     <ClCompile Include="DataSource\SqlAntiHackDataSource.cpp">
       <Filter>DataSource</Filter>
     </ClCompile>
+    <ClCompile Include="DataSource\SqlMessagingDataSource.cpp">
+      <Filter>DataSource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource\DataSource.h">
@@ -92,6 +95,12 @@
       <Filter>DataSource</Filter>
     </ClInclude>
     <ClInclude Include="DataSource\SqlAntiHackDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\MessagingDataSource.h">
+      <Filter>DataSource</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource\SqlMessagingDataSource.h">
       <Filter>DataSource</Filter>
     </ClInclude>
   </ItemGroup>

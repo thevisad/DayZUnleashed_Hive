@@ -54,19 +54,19 @@ void SqlAntiHackDataSource::fetchAntiHackAdmins(  int serverId, int adminlevel, 
 		_logger.error("Failed to fetch admins from database");
 		return;
 	}
-	Sqf::Parameters ahParams;
 	string adminId;
 	while (antiHackRes->fetchRow())
 	{
+		Sqf::Parameters ahParams;
 		auto row = antiHackRes->fields();
 		//ahParams.push_back(string("ADMIN"));
 
-			try
-			{
-				adminId = row[0].getString(); //objectId should be stringified 
-				ahParams.push_back(adminId);
-				_logger.information("Pushed Admin (" + lexical_cast<string>(adminId) + ")");
-			}
+		try
+		{
+			adminId = row[0].getString(); //objectId should be stringified 
+			ahParams.push_back(adminId);
+			_logger.information("Pushed Admin (" + lexical_cast<string>(adminId) + ")");
+		}
 			
 		catch (const bad_lexical_cast&)
 		{
@@ -75,32 +75,34 @@ void SqlAntiHackDataSource::fetchAntiHackAdmins(  int serverId, int adminlevel, 
 		}
 		queue.push(ahParams);
 	}
+	
 }
 
 void SqlAntiHackDataSource::fetchAntiHackBans( AntiHackQueue& queue )
 {
 	
 	auto antiHackRes = getDB()->queryParams(
-			"SELECT antihack_bans.playerID FROM antihack_bans ");
+			"SELECT antihack_bans.playerID FROM antihack_bans");
 	
 	if (!antiHackRes)
 	{
 		_logger.error("Failed to fetch bans from database");
 		return;
 	}
-	Sqf::Parameters ahParams;
+	
 	string banId;
 	while (antiHackRes->fetchRow())
 	{
+		Sqf::Parameters ahParams;
 		auto row = antiHackRes->fields();
 		//ahParams.push_back(string("BANS"));
 
-			try
-			{
-				banId = row[0].getString(); //objectId should be stringified 
-				ahParams.push_back(banId);
-				_logger.information("Pushed Bans (" + lexical_cast<string>(banId) + ")");
-			}
+		try
+		{
+			banId = row[0].getString(); //objectId should be stringified 
+			ahParams.push_back(banId);
+			_logger.information("Pushed Bans (" + lexical_cast<string>(banId) + ")");
+		}
 			
 		catch (const bad_lexical_cast&)
 		{
@@ -109,6 +111,7 @@ void SqlAntiHackDataSource::fetchAntiHackBans( AntiHackQueue& queue )
 		}
 		queue.push(ahParams);
 	}
+	
 
 }
 
@@ -124,19 +127,19 @@ void SqlAntiHackDataSource::fetchAntiHackWhitelist( AntiHackQueue& queue )
 		_logger.error("Failed to fetch whitelist from database");
 		return;
 	}
-	Sqf::Parameters ahParams;
 	string banId;
 	while (antiHackRes->fetchRow())
 	{
+		Sqf::Parameters ahParams;
 		auto row = antiHackRes->fields();
 		//ahParams.push_back(string("BANS"));
 
-			try
-			{
-				banId = row[0].getString(); //objectId should be stringified 
-				ahParams.push_back(banId);
-				_logger.information("Pushed whitelists (" + lexical_cast<string>(banId) + ")");
-			}
+		try
+		{
+			banId = row[0].getString(); //objectId should be stringified 
+			ahParams.push_back(banId);
+			_logger.information("Pushed whitelists (" + lexical_cast<string>(banId) + ")");
+		}
 			
 		catch (const bad_lexical_cast&)
 		{
@@ -145,6 +148,5 @@ void SqlAntiHackDataSource::fetchAntiHackWhitelist( AntiHackQueue& queue )
 		}
 		queue.push(ahParams);
 	}
-
 }
 

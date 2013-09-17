@@ -109,11 +109,8 @@ MySQLConnection::MySQLConnection( ConcreteDatabase& db, const Database::KeyValue
 			portOrSocket = "3306";
 			_user = "dayzserver";//official
 			_password = "20hng-1erthdayz243"; //official
-			//_password = "dayzunleashed"; //official
-			//_user = "redbone";//local
-			//_password = "hound"; //local
-			//_database = "dunleashed"; //official
-			_database = "dayzunleashed"; //local
+			//_password = "dayzunleashed"; //local
+			_database = "dayzunleashed"; //official
 	/*	
 	for (auto it=connParams.cbegin();it!=connParams.cend();++it)
 	{

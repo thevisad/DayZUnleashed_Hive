@@ -198,9 +198,9 @@ bool SqlSquadDataSource::deleteSquad( int serverId, Int64 squadIdent, bool byUID
 {
 	unique_ptr<SqlStatement> stmt;
 	if (byUID)
-		stmt = getDB()->makeStatement(_stmtDeleteSquadByUID, "DELETE FROM `instance_Squad` WHERE `ObjectUID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeleteSquadByUID, "DELETE FROM `squad` WHERE `id` = ? AND `instance_id` = ?");
 	else
-		stmt = getDB()->makeStatement(_stmtDeleteSquadByID, "DELETE FROM `instance_Squad` WHERE `ObjectID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeleteSquadByID, "DELETE FROM `squad` WHERE `id` = ? AND `instance_id` = ?");
 
 	stmt->addInt64(squadIdent);
 	stmt->addInt32(serverId);
@@ -211,16 +211,16 @@ bool SqlSquadDataSource::deleteSquad( int serverId, Int64 squadIdent, bool byUID
 	return exRes;
 }
 
-bool SqlSquadDataSource::deletePlayerSquad( int serverId, Int64 playerSquadIdent, bool byUID )
+bool SqlSquadDataSource::deletePlayerSquad( int characterId, Int64 playerSquadIdent, bool byUID )
 {
 	unique_ptr<SqlStatement> stmt;
 	if (byUID)
-		stmt = getDB()->makeStatement(_stmtDeletePlayerSquadByUID, "DELETE FROM `instance_Squad` WHERE `ObjectUID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeletePlayerSquadByUID, "DELETE FROM `instance_Squad` WHERE `squadId` = ? AND `characterId` = ?");
 	else
-		stmt = getDB()->makeStatement(_stmtDeletePlayerSquadByID, "DELETE FROM `instance_Squad` WHERE `ObjectID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeletePlayerSquadByID, "DELETE FROM `instance_Squad` WHERE `squadId` = ? AND `characterId` = ?");
 
 	stmt->addInt64(playerSquadIdent);
-	stmt->addInt32(serverId);
+	stmt->addString(lexical_cast<string>(characterId));
 
 	bool exRes = stmt->execute();
 	poco_assert(exRes == true);
@@ -230,14 +230,15 @@ bool SqlSquadDataSource::deletePlayerSquad( int serverId, Int64 playerSquadIdent
 
 
 
-bool SqlSquadDataSource::createSquad( int serverId, const string& squadName )
+bool SqlSquadDataSource::createSquad( int serverId, const string& squadName, int characterId)
 {
 	auto stmt = getDB()->makeStatement(_stmtCreateSquad, 
-		"INSERT INTO `squad` (`instance_id`, `squad_name`) "
-		"VALUES ('?' '?',CURRENT_TIMESTAMP )");
+		"INSERT INTO `squad` (`instance_id`, `squad_name`, `squadLeader`, `created_date`) "
+		"VALUES (?, ?, ?, CURRENT_TIMESTAMP)");
 
 	stmt->addInt32(serverId);
 	stmt->addString(squadName);
+	stmt->addString(lexical_cast<string>(characterId));
 	bool exRes = stmt->execute();
 	poco_assert(exRes == true);
 
@@ -247,7 +248,7 @@ bool SqlSquadDataSource::createSquad( int serverId, const string& squadName )
 bool SqlSquadDataSource::createPlayerSquad( int squadId, int characterId )
 {
 	auto stmt = getDB()->makeStatement(_stmtCreatePlayerSquad, 
-		"INSERT INTO `instance_squad` (`squadId`, `CharacterID`) "
+		"INSERT INTO `instance_squad` (`squadId`, `characterID`, `join_date`) "
 		"VALUES (?, ?, CURRENT_TIMESTAMP)");
 
 	stmt->addInt32(squadId);
