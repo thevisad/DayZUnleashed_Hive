@@ -285,7 +285,7 @@ Sqf::Value SqlCharDataSource::fetchCustomInventory( string playerId )
 	return retVal;
 }
 
-Sqf::Value SqlCharDataSource::fetchCharacterVariables( string playerId )
+Sqf::Value SqlCharDataSource::fetchCharacterVariable( int characterID, string variableName )
 {
 
 	Sqf::Value variables = lexical_cast<Sqf::Value>("[]"); //empty inventory
@@ -293,17 +293,50 @@ Sqf::Value SqlCharDataSource::fetchCharacterVariables( string playerId )
 	//get the characters medical
 	{
 		auto newCharRes(getDB()->queryParams(
-			"SELECT character_variables.char_var FROM character_variables WHERE character_variables.characterID =%s", getDB()->escape(playerId).c_str()));
+			"SELECT character_variables.variable_value FROM character_variables WHERE character_variables.characterID = %d AND character_variables.variable_name = '%s'", characterID,getDB()->escape(variableName).c_str()));
 		if (!newCharRes || !newCharRes->fetchRow())
 		{
-			_logger.error("Error fetching variable data for playerId " + playerId);
+			_logger.error("Error fetching variable data for characterID " + characterID);
 			Sqf::Parameters retVal;
 			retVal.push_back(string("ERROR"));
 			return retVal;
 		}
 		variables = lexical_cast<Sqf::Value>(newCharRes->at(0).getString());
 	}
-	_logger.information("Pulled variable information '" + lexical_cast<string>(variables) + "' for player (" + playerId + ")" );
+	_logger.information("Pulled variable information '" + lexical_cast<string>(variables) + "' for player (" + lexical_cast<string>(characterID)+ ")" );
+	
+
+	Sqf::Parameters retVal;
+	retVal.push_back(string("PASS"));
+	retVal.push_back(variables);
+
+	return retVal;
+}
+
+Sqf::Value SqlCharDataSource::fetchCharacterVariableArray( int characterID )
+{
+
+	Sqf::Parameters variables;
+	{
+		auto newCharRes(getDB()->queryParams(
+			"SELECT character_variables.variable_name FROM character_variables WHERE character_variables.characterID =%d", characterID));
+		if (!newCharRes || !newCharRes->fetchRow())
+		{
+			_logger.error("Error fetching variable data for characterID " + characterID);
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ERROR"));
+			return retVal;
+		}
+		while (newCharRes->fetchRow())
+		{
+			auto row = newCharRes->fields();
+			
+			string variable_name = row[0].getString();
+			variables.push_back(lexical_cast<string>(variable_name));
+		}
+	}
+
+	_logger.information("Pulled variable array '" + lexical_cast<string>(variables) + "' for player (" + lexical_cast<string>(characterID) + ")" );
 	
 
 	Sqf::Parameters retVal;
@@ -451,42 +484,8 @@ bool SqlCharDataSource::updateCharacter( int characterId, const FieldsType& fiel
 	return true;
 }
 
-/*
-bool SqlCharDataSource::updateVariables( int characterId, const Sqf::Value& variables)
-{
 
-	Sqf::Parameters retVal;
-	//get details from db
-	{
-		auto characterVariables(getDB()->queryParams("select char_var from character_variables where characterID = %d", characterId));
-		bool exRes;
-		Sleep(5000);
-		if (characterVariables && characterVariables->fetchRow())
-		{
-			auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update character_variables set character_variables.char_var = ? where `CharacterID` = ?");
-			stmt->addString(lexical_cast<string>(variables));
-			stmt->addInt32(characterId);
-			exRes = stmt->execute();
-			poco_assert(exRes == true);
-			_logger.information(" Updated variables for character " + characterId);
-			return exRes;
-		}
-		else 
-		{
-			auto stmt = getDB()->makeStatement(_stmtInsertCharacterVariables,"insert into character_variables set character_variables.char_var = ?, character_variables.characterID = ?");
-			stmt->addString(lexical_cast<string>(variables));
-			stmt->addInt32(characterId);
-			exRes = stmt->execute();
-			poco_assert(exRes == true);
-			_logger.information(" Inserted variables for character " + characterId);
-			return exRes;
-		}
-		
-	}
-}
-*/
-
-bool SqlCharDataSource::updateVariables( int characterId, const Sqf::Value& variables)
+bool SqlCharDataSource::updateVariables( int characterId, string variableName, string variableValue )
 {
 
 	Sqf::Parameters retVal;
@@ -494,25 +493,32 @@ bool SqlCharDataSource::updateVariables( int characterId, const Sqf::Value& vari
 	int testing;
 	//get details from db
 	{
-		auto characterVariables(getDB()->queryParams("SELECT Count(*) FROM character_variables where characterID = %d", characterId));
-		while (characterVariables && characterVariables->fetchRow())
+
+		auto characterVariables(getDB()->queryParams("SELECT count(*) as count FROM character_variables WHERE character_variables.characterID = %d AND character_variables.variable_name = '%s'",characterId,getDB()->escape(variableName).c_str()));
+		if (!characterVariables)
+		{
+				survivalArr = 0;
+		}
+		else do
 		{
 			try {
 				auto row = characterVariables->fields();
-				survivalArr=0;
+				survivalArr = 1;
 				survivalArr = characterVariables->at(0).getInt32();
 			}
 			catch (const bad_lexical_cast&)
 			{
 				_logger.error("Skipping variables for character " + lexical_cast<string>(characterId) + " invalid data in db");
-				continue;
 			}
-		}
+		} while(characterVariables && characterVariables->fetchRow()) ;
+
 		bool exRes;
 		if (survivalArr >= 1)
 		{
-			auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update character_variables set character_variables.char_var = ? where `CharacterID` = ?");
-			stmt->addString(lexical_cast<string>(variables));
+			//update character_variables set variable_value = ? where variable_name = ? and character_variables.characterID = ?
+			auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update character_variables set variable_value = ? where variable_name = ? and character_variables.characterID = ?");
+			stmt->addString(lexical_cast<string>(variableValue));
+			stmt->addString(lexical_cast<string>(variableName));
 			stmt->addInt32(characterId);
 			exRes = stmt->execute();
 			poco_assert(exRes == true);
@@ -521,9 +527,11 @@ bool SqlCharDataSource::updateVariables( int characterId, const Sqf::Value& vari
 		}
 		else if (survivalArr == 0) 
 		{
-			auto stmt = getDB()->makeStatement(_stmtInsertCharacterVariables,"insert into character_variables set character_variables.char_var = ?, character_variables.characterID = ?");
-			stmt->addString(lexical_cast<string>(variables));
+			//insert into character_variables set characterID = ?, variable_name = ?, variable_value = ?
+			auto stmt = getDB()->makeStatement(_stmtInsertCharacterVariables,"insert into character_variables set characterID = ?, variable_name = ?, variable_value = ?");
 			stmt->addInt32(characterId);
+			stmt->addString(lexical_cast<string>(variableName));
+			stmt->addString(lexical_cast<string>(variableValue));
 			exRes = stmt->execute();
 			poco_assert(exRes == true);
 			_logger.information(" Inserted variables for character " + characterId);

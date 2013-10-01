@@ -181,6 +181,7 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	handlers[150] = boost::bind(&HiveExtApp::loadPlayerMedical,this,_1);
 	handlers[151] = boost::bind(&HiveExtApp::loadCharacterVariables,this,_1);
 	handlers[152] = boost::bind(&HiveExtApp::recordCharacterVariables,this,_1);
+	handlers[153] = boost::bind(&HiveExtApp::loadCharacterVariableArray,this,_1);
 
 	//character updates
 	handlers[201] = boost::bind(&HiveExtApp::playerUpdate,this,_1);
@@ -821,9 +822,17 @@ Sqf::Value HiveExtApp::loadCustomInventory( Sqf::Parameters params )
 
 Sqf::Value HiveExtApp::loadCharacterVariables( Sqf::Parameters params )
 {
-	string playerId = Sqf::GetStringAny(params.at(0));
+	int characterID = Sqf::GetIntAny(params.at(0));
+	string variableName = Sqf::GetStringAny(params.at(1));
 
-	return _charData->fetchCharacterVariables(playerId);
+	return _charData->fetchCharacterVariable(characterID,variableName);
+}
+
+Sqf::Value HiveExtApp::loadCharacterVariableArray( Sqf::Parameters params )
+{
+	int characterID = Sqf::GetIntAny(params.at(0));
+
+	return _charData->fetchCharacterVariableArray(characterID);
 }
 
 Sqf::Value HiveExtApp::loadCharacterDetails( Sqf::Parameters params )
@@ -964,6 +973,7 @@ Sqf::Value HiveExtApp::playerUpdate( Sqf::Parameters params )
 	return ReturnBooleanStatus(true);
 }
 
+
 Sqf::Value HiveExtApp::playerInit( Sqf::Parameters params )
 {
 	int characterId = Sqf::GetIntAny(params.at(0));
@@ -976,9 +986,12 @@ Sqf::Value HiveExtApp::playerInit( Sqf::Parameters params )
 Sqf::Value HiveExtApp::recordCharacterVariables( Sqf::Parameters params )
 {
 	int characterId = Sqf::GetIntAny(params.at(0));
-	Sqf::Value variables = boost::get<Sqf::Parameters>(params.at(1));
-
-	return ReturnBooleanStatus(_charData->updateVariables(characterId,variables));
+	
+	string variableName = boost::get<string>(params.at(1));
+	//int variableValue2 = Sqf::GetIntAny(params.at(2));
+	
+	string Text = boost::lexical_cast<string>(params.at(2));
+	return ReturnBooleanStatus(_charData->updateVariables(characterId,variableName,Text));
 }
 
 Sqf::Value HiveExtApp::playerDeath( Sqf::Parameters params )
