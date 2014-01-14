@@ -313,6 +313,34 @@ Sqf::Value SqlCharDataSource::fetchCharacterVariable( int characterID, string va
 	return retVal;
 }
 
+Sqf::Value SqlCharDataSource::fetchPlayerVariable( string playerID, string variableName )
+{
+
+	Sqf::Value variables = lexical_cast<Sqf::Value>("[]"); //empty inventory
+	
+	//get the players medical
+	{
+		auto newCharRes(getDB()->queryParams(
+			"SELECT player_variables.variable_value FROM player_variables WHERE player_variables.playerID = %s AND player_variables.variable_name = '%s'",getDB()->escape(playerID).c_str(),getDB()->escape(variableName).c_str()));
+		if (!newCharRes || !newCharRes->fetchRow())
+		{
+			_logger.error("Error fetching variable data for playerID " + playerID);
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ERROR"));
+			return retVal;
+		}
+		variables = lexical_cast<Sqf::Value>(newCharRes->at(0).getString());
+	}
+	_logger.information("Pulled variable information '" + lexical_cast<string>(variables) + "' for player (" + lexical_cast<string>(playerID)+ ")" );
+	
+
+	Sqf::Parameters retVal;
+	retVal.push_back(string("PASS"));
+	retVal.push_back(variables);
+
+	return retVal;
+}
+
 Sqf::Value SqlCharDataSource::fetchCharacterVariableArray( int characterID )
 {
 
@@ -535,6 +563,61 @@ bool SqlCharDataSource::updateVariables( int characterId, string variableName, s
 			exRes = stmt->execute();
 			poco_assert(exRes == true);
 			_logger.information(" Inserted variables for character " + characterId);
+			return exRes;
+		}
+	}
+}
+
+bool SqlCharDataSource::updatePlayerVariables( string playerId, string variableName, string variableValue )
+{
+
+	Sqf::Parameters retVal;
+	int survivalArr;
+	int testing;
+	//get details from db
+	{
+
+		auto playerVariables(getDB()->queryParams("SELECT count(*) as count FROM player_variables WHERE player_variables.playerID = %s AND player_variables.variable_name = '%s'",getDB()->escape(playerId).c_str(),getDB()->escape(variableName).c_str()));
+		if (!playerVariables)
+		{
+				survivalArr = 0;
+		}
+		else do
+		{
+			try {
+				auto row = playerVariables->fields();
+				survivalArr = 1;
+				survivalArr = playerVariables->at(0).getInt32();
+			}
+			catch (const bad_lexical_cast&)
+			{
+				_logger.error("Skipping variables for player " + lexical_cast<string>(playerId) + " invalid data in db");
+			}
+		} while(playerVariables && playerVariables->fetchRow()) ;
+
+		bool exRes;
+		if (survivalArr >= 1)
+		{
+			//update player_variables set variable_value = ? where variable_name = ? and player_variables.playerID = ?
+			auto stmt = getDB()->makeStatement(_stmtUpdateCharacterVariables,"update player_variables set variable_value = ? where variable_name = ? and player_variables.playerID = ?");
+			stmt->addString(lexical_cast<string>(variableValue));
+			stmt->addString(lexical_cast<string>(variableName));
+			stmt->addString(playerId);
+			exRes = stmt->execute();
+			poco_assert(exRes == true);
+			_logger.information(" Updated variables for player " + playerId);
+			return exRes;
+		}
+		else if (survivalArr == 0) 
+		{
+			//insert into player_variables set playerID = ?, variable_name = ?, variable_value = ?
+			auto stmt = getDB()->makeStatement(_stmtInsertCharacterVariables,"insert into player_variables set playerID = ?, variable_name = ?, variable_value = ?");
+			stmt->addString(playerId);
+			stmt->addString(lexical_cast<string>(variableName));
+			stmt->addString(lexical_cast<string>(variableValue));
+			exRes = stmt->execute();
+			poco_assert(exRes == true);
+			_logger.information(" Inserted variables for player " + playerId);
 			return exRes;
 		}
 	}

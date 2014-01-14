@@ -310,6 +310,13 @@ protected:
 			}
 			catch (Poco::NotFoundException) {}
 
+			try	
+			{ 
+				int bandwidth = conf->getInt("bandwidthAlg");
+				startParams.push_back("-bandwidthAlg="+lexical_cast<string>(bandwidth));
+			}
+			catch (Poco::NotFoundException) {}
+
 			//set cpuCores
 			{
 				int defaultNumCores = -1;

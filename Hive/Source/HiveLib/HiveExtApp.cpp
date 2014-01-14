@@ -182,6 +182,8 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	handlers[151] = boost::bind(&HiveExtApp::loadCharacterVariables,this,_1);
 	handlers[152] = boost::bind(&HiveExtApp::recordCharacterVariables,this,_1);
 	handlers[153] = boost::bind(&HiveExtApp::loadCharacterVariableArray,this,_1);
+	handlers[154] = boost::bind(&HiveExtApp::loadPlayerVariables,this,_1);
+	handlers[155] = boost::bind(&HiveExtApp::recordPlayerVariables,this,_1);
 
 	//character updates
 	handlers[201] = boost::bind(&HiveExtApp::playerUpdate,this,_1);
@@ -828,6 +830,14 @@ Sqf::Value HiveExtApp::loadCharacterVariables( Sqf::Parameters params )
 	return _charData->fetchCharacterVariable(characterID,variableName);
 }
 
+Sqf::Value HiveExtApp::loadPlayerVariables( Sqf::Parameters params )
+{
+	string playerID = Sqf::GetStringAny(params.at(0));
+	string variableName = Sqf::GetStringAny(params.at(1));
+
+	return _charData->fetchPlayerVariable(playerID,variableName);
+}
+
 Sqf::Value HiveExtApp::loadCharacterVariableArray( Sqf::Parameters params )
 {
 	int characterID = Sqf::GetIntAny(params.at(0));
@@ -992,6 +1002,17 @@ Sqf::Value HiveExtApp::recordCharacterVariables( Sqf::Parameters params )
 	
 	string Text = boost::lexical_cast<string>(params.at(2));
 	return ReturnBooleanStatus(_charData->updateVariables(characterId,variableName,Text));
+}
+
+Sqf::Value HiveExtApp::recordPlayerVariables( Sqf::Parameters params )
+{
+	string playerId = boost::get<string>(params.at(0));
+	
+	string variableName = boost::get<string>(params.at(1));
+	//int variableValue2 = Sqf::GetIntAny(params.at(2));
+	
+	string Text = boost::lexical_cast<string>(params.at(2));
+	return ReturnBooleanStatus(_charData->updatePlayerVariables(playerId,variableName,Text));
 }
 
 Sqf::Value HiveExtApp::playerDeath( Sqf::Parameters params )
