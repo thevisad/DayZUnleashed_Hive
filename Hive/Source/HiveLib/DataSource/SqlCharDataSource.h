@@ -32,12 +32,10 @@ public:
 	Sqf::Value fetchCharacterMedical( string playerId, int serverId) override;
 	Sqf::Value fetchCustomInventory( string playerId ) override;
 	Sqf::Value fetchCharacterVariable( int characterID, string variableName ) override;
-	Sqf::Value fetchPlayerVariable( string playerID, string variableName ) override;
 	Sqf::Value fetchCharacterVariableArray( int characterID ) override;
 	Sqf::Value fetchCharacterDetails( int characterId ) override;
 	bool updateCharacter( int characterId, const FieldsType& fields ) override;
 	bool updateVariables( int characterId, string variableName, string variableValue ) override;
-	bool updatePlayerVariables( string playerId, string variableName, string variableValue ) override;
 	bool initCharacter( int characterId, const Sqf::Value& inventory, const Sqf::Value& backpack ) override;
 	bool killCharacter( int characterId, int duration ) override;
 	bool recordLogin( string playerId, int characterId, int action ) override;

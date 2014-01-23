@@ -70,6 +70,7 @@ private:
 	void setRunning(bool isRunning) { boost::mutex::scoped_lock lck(_runningCS); _running = isRunning; }
 
 	UInt32 _faults;
+	int restarttime;
 	mutable boost::mutex _faultsCS;
 
 	UInt32 getFaults() const { boost::mutex::scoped_lock lck(_faultsCS); return _faults; }
@@ -310,13 +311,6 @@ protected:
 			}
 			catch (Poco::NotFoundException) {}
 
-			try	
-			{ 
-				int bandwidth = conf->getInt("bandwidthAlg");
-				startParams.push_back("-bandwidthAlg="+lexical_cast<string>(bandwidth));
-			}
-			catch (Poco::NotFoundException) {}
-
 			//set cpuCores
 			{
 				int defaultNumCores = -1;
@@ -347,6 +341,13 @@ protected:
 			{ 
 				int exThreads = conf->getInt("exThreads");
 				startParams.push_back("-exThreads="+lexical_cast<string>(exThreads));
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				restarttime = conf->getInt("restarttime");
+				startParams.push_back("-restarttime="+lexical_cast<string>(restarttime));
 			}
 			catch (Poco::NotFoundException) {}
 
@@ -527,12 +528,14 @@ protected:
 			if (getRunning())
 			{
 				int waitTime = 10;
+				if (!restarttime) 
+					restarttime=waitTime;
 				{
 					boost::mutex::scoped_lock lck(_out);
-					std::cout << serverName << ": Waiting " << waitTime << "s before restarting" << std::endl;
+					std::cout << serverName << ": Waiting " << restarttime << "s before restarting" << std::endl;
 				}
 				DWORD startMillis = GetTickCount();
-				while ((GetTickCount() - startMillis) < (waitTime*1000))
+				while ((GetTickCount() - startMillis) < (restarttime*1000))
 				{
 					Sleep(100);
 					if (!getRunning())

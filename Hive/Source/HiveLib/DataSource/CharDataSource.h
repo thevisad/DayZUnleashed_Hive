@@ -29,13 +29,11 @@ public:
 	virtual Sqf::Value fetchCharacterMedical( string playerId, int serverId) = 0;
 	virtual Sqf::Value fetchCustomInventory( string playerId ) = 0;
 	virtual Sqf::Value fetchCharacterVariable( int characterID, string variableName ) = 0;
-	virtual Sqf::Value fetchPlayerVariable( string playerID, string variableName ) = 0;
 	virtual Sqf::Value fetchCharacterVariableArray( int characterID ) = 0;
 	virtual Sqf::Value fetchCharacterDetails( int characterId ) = 0;
 	typedef map<string,Sqf::Value> FieldsType;
 	virtual bool updateCharacter( int characterId, const FieldsType& fields ) = 0;
 	virtual bool updateVariables( int characterId, string variableName, string variableValue ) = 0;
-	virtual bool updatePlayerVariables( string playerId, string variableName, string variableValue ) = 0;
 	virtual bool initCharacter( int characterId, const Sqf::Value& inventory, const Sqf::Value& backpack ) = 0;
 	virtual bool killCharacter( int characterId, int duration ) = 0;
 	virtual bool recordLogin( string playerId, int characterId, int action ) = 0;

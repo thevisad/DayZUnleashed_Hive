@@ -129,9 +129,7 @@ private:
 	Sqf::Value loadPlayerMedical(Sqf::Parameters params);
 	Sqf::Value loadCustomInventory(Sqf::Parameters params);
 	Sqf::Value recordCharacterVariables(Sqf::Parameters params);
-	Sqf::Value recordPlayerVariables(Sqf::Parameters params);
 	Sqf::Value loadCharacterVariables(Sqf::Parameters params);
-	Sqf::Value loadPlayerVariables(Sqf::Parameters params);
 	Sqf::Value loadCharacterVariableArray(Sqf::Parameters params);
 	Sqf::Value loadCharacterDetails(Sqf::Parameters params);
 	Sqf::Value recordCharacterLogin(Sqf::Parameters params);
