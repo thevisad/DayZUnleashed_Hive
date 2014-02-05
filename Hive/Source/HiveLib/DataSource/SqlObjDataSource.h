@@ -50,4 +50,6 @@ private:
 	SqlStatementID _stmtUpdateVehicleMovement;
 	SqlStatementID _stmtUpdateVehicleStatus;
 	SqlStatementID _stmtCreateObject;
+	SqlStatementID _stmtCreateTempTable;
+	SqlStatementID _stmtDropTempTable;
 };

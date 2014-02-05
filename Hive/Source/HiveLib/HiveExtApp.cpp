@@ -160,6 +160,10 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	//Messaging/Custom inventory
 	handlers[220] = boost::bind(&HiveExtApp::streamMessages,this,_1);	
 	handlers[221] = boost::bind(&HiveExtApp::loadCustomInventory,this,_1);
+
+	handlers[230] = boost::bind(&HiveExtApp::loadLootPiles,this,_1);
+
+
 	//Inventory
 	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false);
 	//handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1,true);
@@ -357,6 +361,7 @@ Sqf::Value HiveExtApp::streamObjects( Sqf::Parameters params )
 				_initKey = ostr.str();
 			}
 
+
 			Sqf::Parameters retVal;
 			retVal.push_back(string("ObjectStreamStart"));
 			int test = static_cast<int>(_srvObjects.size());
@@ -444,7 +449,6 @@ Sqf::Value HiveExtApp::loadAHAdmins( Sqf::Parameters params )
 		Sqf::Parameters retVal;
 		retVal.push_back(string("AntiHackStreamStart"));
 		retVal.push_back(static_cast<int>(_srvAntiHacks.size()));
-		//retVal.push_back(_initKey);
 		return retVal;
 	}
 	else
@@ -455,6 +459,32 @@ Sqf::Value HiveExtApp::loadAHAdmins( Sqf::Parameters params )
 		return retVal;
 	}
 }
+
+Sqf::Value HiveExtApp::loadLootPiles( Sqf::Parameters params )
+{
+		if (_srvLoot.empty())
+		{
+			string buildingName = Sqf::GetStringAny(params.at(0));
+			string optionalBuildings1 = Sqf::GetStringAny(params.at(1));
+			string optionalBuildings2 = Sqf::GetStringAny(params.at(2));
+			string optionalBuildings3 = Sqf::GetStringAny(params.at(3));
+			int limitAmount = Sqf::GetIntAny(params.at(4));
+			_lootData->fetchLootPiles(buildingName,optionalBuildings1,optionalBuildings2,optionalBuildings3,limitAmount, _srvLoot);
+
+			Sqf::Parameters retVal;
+			retVal.push_back(string("LootStart"));
+			retVal.push_back(static_cast<int>(_srvLoot.size()));
+			return retVal;
+		}
+		else
+		{
+			Sqf::Parameters retVal = _srvLoot.front();
+			_srvLoot.pop();
+
+			return retVal;
+		}
+}
+
 
 Sqf::Value HiveExtApp::loadAHBans( Sqf::Parameters params )
 {
@@ -478,6 +508,9 @@ Sqf::Value HiveExtApp::loadAHBans( Sqf::Parameters params )
 		return retVal;
 	}
 }
+
+
+
 
 Sqf::Value HiveExtApp::loadAHWhiteList( Sqf::Parameters params )
 {
@@ -822,6 +855,7 @@ Sqf::Value HiveExtApp::loadCustomInventory( Sqf::Parameters params )
 
 	return _charData->fetchCustomInventory(playerId);
 }
+
 
 Sqf::Value HiveExtApp::loadCharacterVariables( Sqf::Parameters params )
 {

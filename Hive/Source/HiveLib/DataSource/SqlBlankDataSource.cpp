@@ -26,6 +26,24 @@ using boost::bad_lexical_cast;
 #include <Poco/Util/AbstractConfiguration.h>
 
 
+SqlBlankDataSource::SqlBlankDataSource( Poco::Logger& logger, shared_ptr<Database> db, const Poco::Util::AbstractConfiguration* conf ) : SqlDataSource(logger,db)
+{
+	static const string defaultTable = "instance_Instances"; 
+	/*
+	if (conf != NULL)
+	{
+		_objTableName = getDB()->escape(conf->getString("Table",defaultTable));
+		_cleanupPlacedDays = conf->getInt("CleanupPlacedAfterDays",6);
+		_vehicleOOBReset = conf->getBool("ResetOOBVehicles",false);
+	}
+	else
+	{
+		_objTableName = defaultTable;
+		_cleanupPlacedDays = -1;
+		_vehicleOOBReset = false;
+	}*/
+}
+
 
 
 

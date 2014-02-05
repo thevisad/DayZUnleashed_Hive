@@ -59,7 +59,6 @@ void SqlAntiHackDataSource::fetchAntiHackAdmins(  int serverId, int adminlevel, 
 	{
 		Sqf::Parameters ahParams;
 		auto row = antiHackRes->fields();
-		//ahParams.push_back(string("ADMIN"));
 
 		try
 		{

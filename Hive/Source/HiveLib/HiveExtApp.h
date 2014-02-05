@@ -31,6 +31,8 @@
 #include "DataSource/InstanceDataSource.h"
 #include "DataSource/AntiHackDataSource.h"
 #include "DataSource/MessagingDataSource.h"
+#include "DataSource/LootDataSource.h"
+#include "Database/SqlStatement.h"
 
 #include <boost/function.hpp>
 #include <boost/date_time.hpp>
@@ -78,6 +80,7 @@ protected:
 	unique_ptr<SquadDataSource> _psqdData;
 	unique_ptr<InstanceDataSource> _instData;
 	unique_ptr<MessagingDataSource> _msgData;
+	unique_ptr<LootDataSource> _lootData;
 
 	string _initKey;
 private:
@@ -99,6 +102,7 @@ private:
 	QuestDataSource::ServerQuestsQueue _srvQuests;
 	AntiHackDataSource::AntiHackQueue _srvAntiHacks;
 	MessagingDataSource::ServerMessagingQueue _srvMessaging;
+	LootDataSource::ServerLootsQueue _srvLoot;
 
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
@@ -153,5 +157,8 @@ private:
 		//Unleashed
 	Sqf::Value buildingPublish(Sqf::Parameters params);
 	Sqf::Value instancePublish(Sqf::Parameters params);
+	Sqf::Value loadLootPiles(Sqf::Parameters params);
+
+	SqlStatementID _stmtCreateLoot;
 
 };

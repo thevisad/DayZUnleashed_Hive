@@ -18,16 +18,14 @@
 
 #pragma once
 
-#include "Shared/Common/Types.h"
-#include "HiveLib/HiveExtApp.h"
+#include "DataSource.h"
 
-class Database;
-class DirectHiveApp: public HiveExtApp
+class LootDataSource
 {
 public:
-	DirectHiveApp(string suffixDir);
-protected:
-	bool initialiseService() override;
-private:
-	shared_ptr<Database> _charDb, _objDb, _instDb, _sqdDb, _psqdDb, _qstDb, _bldDb, _pqstDb, _antiHackDb, _messagingDb,_lootDb;
+	virtual ~LootDataSource() {}
+
+	typedef std::queue<Sqf::Parameters> ServerLootsQueue;
+	typedef map<string,Sqf::Value> FieldsType;
+	virtual void fetchLootPiles( string buildingName, string buildingName1, string buildingName2, string buildingName3, int limitAmount, ServerLootsQueue& queue ) = 0;
 };

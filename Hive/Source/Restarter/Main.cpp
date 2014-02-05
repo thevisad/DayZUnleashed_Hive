@@ -346,6 +346,71 @@ protected:
 
 			try	
 			{ 
+				int bandwidthAlg = conf->getInt("bandwidthAlg");
+				startParams.push_back("-bandwidthAlg="+lexical_cast<string>(bandwidthAlg));
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				int maxMem = conf->getInt("maxMem");
+				startParams.push_back("-maxMem="+lexical_cast<string>(maxMem));
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				string servertype = conf->getString("servertype");
+				if (servertype == "server")
+				{
+					startParams.push_back("-server");
+				}
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				string netlog = conf->getString("netlog");
+				if (netlog == "true")
+				{
+					startParams.push_back("-netlog=true");
+				}
+				
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				string ipaddress = conf->getString("ip");
+				startParams.push_back("-ip="+lexical_cast<string>(ipaddress));
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				string ranking = conf->getString("rankingfile");
+				startParams.push_back("-ranking="+lexical_cast<string>(ranking));
+			}
+			catch (Poco::NotFoundException) {}
+
+			try	
+			{ 
+				string BEpath = conf->getString("BEpath");
+				startParams.push_back("-BEpath="+lexical_cast<string>(BEpath));
+			}
+			catch (Poco::NotFoundException) {}
+
+
+			try	
+			{ 
+				string malloc = conf->getString("malloc");
+				startParams.push_back("-malloc="+lexical_cast<string>(malloc));
+			}
+			catch (Poco::NotFoundException) {}
+
+
+			try	
+			{ 
 				restarttime = conf->getInt("restarttime");
 				startParams.push_back("-restarttime="+lexical_cast<string>(restarttime));
 			}

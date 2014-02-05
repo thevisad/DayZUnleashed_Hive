@@ -29,6 +29,7 @@ DirectHiveApp::DirectHiveApp(string suffixDir) : HiveExtApp(suffixDir) {}
 #include "HiveLib/DataSource/SqlInstanceDataSource.h"
 #include "HiveLib/DataSource/SqlAntiHackDataSource.h"
 #include "HiveLib/DataSource/SqlMessagingDataSource.h"
+#include "HiveLib/DataSource/SqlLootDataSource.h"
 
 bool DirectHiveApp::initialiseService()
 {
@@ -44,6 +45,7 @@ bool DirectHiveApp::initialiseService()
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> psqdDBConf(config().createView("PlayerSquadDB"));
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> antiHackDBConf(config().createView("AntiHackDB"));
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> messagingDBConf(config().createView("MessagingDB"));
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> lootDBConf(config().createView("LootDB"));
 
 
 
@@ -134,6 +136,15 @@ bool DirectHiveApp::initialiseService()
 					return false;
 			}
 
+			_lootDb = _charDb;
+			if (lootDBConf->getBool("Use",false))
+			{
+				Poco::Logger& lootDBLogger = Poco::Logger::get("lootDB");
+				_lootDb = DatabaseLoader::Create(lootDBConf);
+				if (!_lootDb->initialise(lootDBLogger,DatabaseLoader::MakeConnParams(lootDBConf)))
+					return false;
+			}
+
 		}
 		catch (const DatabaseLoader::CreationError& e) 
 		{
@@ -205,6 +216,13 @@ bool DirectHiveApp::initialiseService()
 		Poco::AutoPtr<Poco::Util::AbstractConfiguration> messagingConf(config().createView("Messaging"));
 		_msgData.reset(new SqlMessagingDataSource(logger(),_messagingDb,messagingConf.get()));
 	}
+
+	//loot Datasource
+	{
+		Poco::AutoPtr<Poco::Util::AbstractConfiguration> lootConf(config().createView("Loot"));
+		_lootData.reset(new SqlLootDataSource(logger(),_lootDb,lootConf.get()));
+	}
+
 	//Create custom datasource
 	_customData.reset(new CustomDataSource(logger(),_charDb,_objDb));
 

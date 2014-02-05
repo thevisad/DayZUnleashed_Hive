@@ -103,7 +103,7 @@ MySQLConnection::MySQLConnection( ConcreteDatabase& db, const Database::KeyValue
 	_user = "root";
 
 	std::string portOrSocket;
-	
+	/*
 			_host ="127.0.0.1";//local hive
 			//_host = "162.213.194.138";
 			portOrSocket = "3306";
@@ -111,7 +111,7 @@ MySQLConnection::MySQLConnection( ConcreteDatabase& db, const Database::KeyValue
 			_password = "20hng-1erthdayz243"; //official
 			//_password = "dayzunleashed"; //local
 			_database = "dayzunleashed"; //official
-	/*	
+	*/
 	for (auto it=connParams.cbegin();it!=connParams.cend();++it)
 	{
 		
@@ -129,7 +129,7 @@ MySQLConnection::MySQLConnection( ConcreteDatabase& db, const Database::KeyValue
 
 	}
 	
-	*/
+
 #ifdef _WIN32
 	//Windows named pipe option
 	if(_host==".")                                           

@@ -17,6 +17,7 @@
     <ClInclude Include="DataSource\CustomDataSource.h" />
     <ClInclude Include="DataSource\DataSource.h" />
     <ClInclude Include="DataSource\InstanceDataSource.h" />
+    <ClInclude Include="DataSource\LootDataSource.h" />
     <ClInclude Include="DataSource\MessagingDataSource.h" />
     <ClInclude Include="DataSource\ObjDataSource.h" />
     <ClInclude Include="DataSource\QuestDataSource.h" />
@@ -25,6 +26,7 @@
     <ClInclude Include="DataSource\SqlCharDataSource.h" />
     <ClInclude Include="DataSource\SqlDataSource.h" />
     <ClInclude Include="DataSource\SqlInstanceDataSource.h" />
+    <ClInclude Include="DataSource\SqlLootDataSource.h" />
     <ClInclude Include="DataSource\SqlMessagingDataSource.h" />
     <ClInclude Include="DataSource\SqlObjDataSource.h" />
     <ClInclude Include="DataSource\SqlQuestDataSource.h" />
@@ -42,6 +44,7 @@
     <ClCompile Include="DataSource\SqlBuildingDataSource.cpp" />
     <ClCompile Include="DataSource\SqlCharDataSource.cpp" />
     <ClCompile Include="DataSource\SqlInstanceDataSource.cpp" />
+    <ClCompile Include="DataSource\SqlLootDataSource.cpp" />
     <ClCompile Include="DataSource\SqlMessagingDataSource.cpp" />
     <ClCompile Include="DataSource\SqlObjDataSource.cpp" />
     <ClCompile Include="DataSource\SqlQuestDataSource.cpp" />
