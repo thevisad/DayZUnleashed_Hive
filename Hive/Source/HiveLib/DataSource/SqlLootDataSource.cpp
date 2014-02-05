@@ -27,6 +27,7 @@ using boost::bad_lexical_cast;
 #include <ctime>
 #include <sstream>
 #include <string> 
+#include <mutex> 
 
 namespace
 {
@@ -87,6 +88,7 @@ char genRandom()
     return alphanum[rand() % stringLength];
 }
 
+std::mutex mtx;
 
 void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName1, string buildingName2, string buildingName3, int limitAmount, ServerLootsQueue& queue )
 {
@@ -97,12 +99,13 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 	srand(time(0));
 	std::string tablename1;
 	std::string tablename2;
+
     for(unsigned int i = 0; i < 20; ++i)
     {
 		tablename1 += genRandom();
 		tablename2 += genRandom();
     }
-
+	mtx.lock();
 	Sqf::Parameters variables;
 
 	{
@@ -264,5 +267,5 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 	_logger.information("Total time to run building loot query (" + str + ")" );
 	_logger.information("Total items pushed to temp loot table (" + str2 + ")" );
 	_logger.information("Total items looped through (" + str3 + ")" );
-
+	mtx.unlock();
 }

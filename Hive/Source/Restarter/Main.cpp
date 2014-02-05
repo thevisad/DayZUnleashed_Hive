@@ -482,9 +482,20 @@ protected:
 			try
 			{
 				string mods = escapeQuotes(conf->getString("mod"));
+				if (_betaSrv)
+				{
+					if (mods.length() > 0 && *mods.rbegin() != ';')
+						mods += ";";
+
+					mods += "Expansion\\beta;Expansion\\beta\\Expansion";
+				}
 				startParams.push_back("-mod="+mods);
 			}
-			catch (Poco::NotFoundException)	{}
+			catch (Poco::NotFoundException)	
+			{
+				if (_betaSrv)
+					startParams.push_back("-mod=Expansion\\beta;Expansion\\beta\\Expansion");
+			}
 
 			try
 			{
