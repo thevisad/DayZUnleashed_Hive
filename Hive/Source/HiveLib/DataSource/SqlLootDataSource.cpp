@@ -21,19 +21,33 @@
 
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>            // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
 #include <Poco/Util/AbstractConfiguration.h>
 #include <ctime>
 #include <sstream>
+#include <iostream>
 #include <string> 
-#include <mutex> 
 
 namespace
 {
 	typedef boost::optional<Sqf::Value> BuildingInfo;
 
 
+	class object{
+	public:
+		object()
+		: tag(boost::uuids::random_generator()())
+		, state(0)
+		{}
+	private:
+		boost::uuids::uuid tag;
+
+		int state;
+	};
 
 	class GetOptionalBuildings : public boost::static_visitor<BuildingInfo>
 	{
@@ -77,65 +91,98 @@ SqlLootDataSource::SqlLootDataSource( Poco::Logger& logger, shared_ptr<Database>
 
 static const char alphanum[] =
 "0123456789"
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyz";
 
 int stringLength = sizeof(alphanum) - 1;
 
 char genRandom()
 {
-
     return alphanum[rand() % stringLength];
 }
 
-std::mutex mtx;
+int loot = 0;
 
-void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName1, string buildingName2, string buildingName3, int limitAmount, ServerLootsQueue& queue )
+string SqlLootDataSource::createHouseTable(string buildingNameID)
 {
 
-	clock_t begin = clock();
-	int count = 0;
-	int count2 = 0;
-	srand(time(0));
-	std::string tablename1;
-	std::string tablename2;
+	try {
+		auto possibleLoot = getDB()->queryParams("SELECT building_loot.loot_name, building_loot.loot_type, building_loot.loot_max, building_loot.game_max FROM building_data "
+			"INNER JOIN building_type ON building_data.building_type = building_type.building_type INNER JOIN building_loot ON building_type.loot_level = building_loot.loot_level "
+			"WHERE building_data.building_name = '%s' or building_data.building_name = '%s' or building_data.building_name = '%s' order by rand()"
+			, getDB()->escape(buildingName).c_str(), getDB()->escape(buildingNameAlt1).c_str(), getDB()->escape(buildingNameAlt2).c_str());
 
-    for(unsigned int i = 0; i < 20; ++i)
-    {
-		tablename1 += genRandom();
-		tablename2 += genRandom();
-    }
-	mtx.lock();
-	Sqf::Parameters variables;
 
-	{
-		auto createLootBoxStmt = getDB()->makeStatement( _stmtCreateLootBoxControlTable,"CREATE TABLE IF NOT EXISTS " + tablename1 + " (loot_name VARCHAR(50) NOT NULL);");
-		bool exRes = createLootBoxStmt->execute();
-		poco_assert(exRes == true);
-	}
-	{
-		auto bldTempTable  = getDB()->makeStatement( _stmtCreateTempLoot,"CREATE TABLE IF NOT EXISTS " + tablename2 + " (loot_name VARCHAR(50) NOT NULL,loot_type VARCHAR(50) NOT NULL,loot_max INT(11) NOT NULL,game_max INT(11) NOT NULL);");
-		bool exRes = bldTempTable->execute();
-		poco_assert(exRes == true);
+		if (!possibleLoot) //if (!possibleLoot || !possibleLoot->fetchRow())
+		{
+			clock_t end = clock();
+			double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+			std::string str = boost::lexical_cast<std::string>(elapsed_secs);
+			//std::string str2 = boost::lexical_cast<std::string>(count);
+			//std::string str3 = boost::lexical_cast<std::string>(count2);
+			_logger.information("Failed Loot: Total time to run building loot query (" + str + ")");
+			//_logger.information("Total items pushed to temp loot table (" + str2 + ")");
+			//_logger.information("Total items looped through (" + str3 + ")");
+			return;
+		}
 	}
 
+	catch (...) //catch (const bad_lexical_cast&)
+	{
+		return "";
+	}
 
-	auto possibleLoot = getDB()->queryParams("SELECT building_loot.loot_name, building_loot.loot_type, building_loot.loot_max, building_loot.game_max FROM building_data "
-		"INNER JOIN building_type ON building_data.building_type = building_type.building_type INNER JOIN building_loot ON building_type.loot_level = building_loot.loot_level "
-		"WHERE building_data.building_name = '%s' or building_data.building_name = '%s' or building_data.building_name = '%s' or building_data.building_name = '%s' order by rand()"
-		, getDB()->escape(buildingName).c_str(), getDB()->escape(buildingName1).c_str(), getDB()->escape(buildingName2).c_str(), getDB()->escape(buildingName3).c_str());
+	boost::uuids::uuid houseuuid = boost::uuids::random_generator()();
+	//std::cout << uuid << std::endl;
+	std::string houseUUID = boost::lexical_cast<std::string>(houseuuid);
+
+	return houseUUID;
+}
+
+string SqlLootDataSource::getUUID()
+{
+	boost::uuids::uuid uuid = boost::uuids::random_generator()();
+	std::string stringuuid = boost::lexical_cast<std::string>(uuid);
+
+	return stringuuid;
+}
+
+
+
+void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingNameID, string buildingNameAlt1, string buildingNameAlt2, int limitAmount, ServerLootsQueue& queue ) {
+		clock_t begin = clock();
+		int count = 0;
+		int count2 = 0;
+		srand(time(0));
 
 		
-	{
+		loot++;
+		std::string loop = boost::lexical_cast<std::string>(loot);
+		string loot_name;
 
-		if (!possibleLoot || !possibleLoot->fetchRow())
+		string houseUUID = SqlLootDataSource::createHouseTable(buildingNameID);
+
+
+		auto possibleLoot = getDB()->queryParams("SELECT building_loot.loot_name, building_loot.loot_type, building_loot.loot_max, building_loot.game_max FROM building_data "
+			"INNER JOIN building_type ON building_data.building_type = building_type.building_type INNER JOIN building_loot ON building_type.loot_level = building_loot.loot_level "
+			"WHERE building_data.building_name = '%s' or building_data.building_name = '%s' or building_data.building_name = '%s' order by rand()"
+			, getDB()->escape(buildingName).c_str(), getDB()->escape(buildingNameAlt1).c_str(), getDB()->escape(buildingNameAlt2).c_str());
+
+
+		if (!possibleLoot) //if (!possibleLoot || !possibleLoot->fetchRow())
 		{
-			_logger.error("Error fetching loot for building: " + buildingName);
+			clock_t end = clock();
+			double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+			std::string str = boost::lexical_cast<std::string>(elapsed_secs);
+			//std::string str2 = boost::lexical_cast<std::string>(count);
+			//std::string str3 = boost::lexical_cast<std::string>(count2);
+			_logger.information("Failed Loot: Total time to run building loot query (" + str + ")");
+			//_logger.information("Total items pushed to temp loot table (" + str2 + ")");
+			//_logger.information("Total items looped through (" + str3 + ")");
 			return;
 		}
 		while (possibleLoot->fetchRow())
 		{
-			string loot_name;
+			
 			try {
 				auto possibleLootRow = possibleLoot->fields();
 				loot_name = possibleLootRow[0].getString();
@@ -144,128 +191,145 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 				int game_max = possibleLootRow[3].getInt16();
 				for (int i = 1; i <= loot_amount; i++)
 				{
-					auto stmt = getDB()->makeStatement( _stmtInsertTempLoot,"INSERT " + tablename2 + "  (loot_name,loot_type, loot_max, game_max ) VALUES (?,?,?,?);");
+					auto stmt = getDB()->makeStatement(_stmtInsertTempLoot, "INSERT INTO lootboxtemp (loot_guid,loot_name,loot_type, loot_max, game_max ) VALUES (?,?,?,?,?);");
+					stmt->addString(loot_guid);
 					stmt->addString(loot_name);
 					stmt->addString(loot_type);
 					stmt->addInt16(loot_amount);
 					stmt->addInt16(game_max);
-					bool exRes = stmt->execute();
-					poco_assert(exRes == true);
+					bool exRes = stmt->directExecute();
+					//poco_assert(exRes == true);
+					//_logger.error("Inserting into table guid: " + loot_guid + " loop" + loop);
 					count++;
 				}
 				count2++;
 			}
-			
-			catch (const bad_lexical_cast&)
+
+			catch (...) //catch (const bad_lexical_cast&)
 			{
-				_logger.error("Skipping building loot " + lexical_cast<string>(loot_name) + " load because of invalid data in db");
+				_logger.error("Skipping building loot " + lexical_cast<string>(loot_name)+" load because of invalid data in db");
 				continue;
 			}
 		}
+
+		auto buildingLoot = getDB()->queryParams("SELECT loot_name, loot_type,loot_max, game_max FROM `lootboxtemp` where loot_guid = '%s' order by rand() limit %d", getDB()->escape(loot_guid).c_str(), limitAmount);
+		if (!buildingLoot || !buildingLoot->fetchRow())
 		{
-			auto buildingLoot = getDB()->queryParams("SELECT loot_name, loot_type,loot_max, game_max FROM `%s` order by rand() limit %d", getDB()->escape(tablename2).c_str(), limitAmount);
-			if (!buildingLoot || !buildingLoot->fetchRow())
-			{
-				_logger.error("Error fetching loot for building: " + buildingName);
-				return;
-			}
-			int game_max = 0;
-			int lootMax_amount = 0;
-			int boxmax_amount = 0;
-			int boxcount = 0;
-			while (buildingLoot->fetchRow())
-			{
-				string tempLoot_name;
-				try
-				{
-					game_max=0;
-					lootMax_amount=0;
-					boxmax_amount=0;
-					boxcount=0;
-				
-					auto buildingLootRow = buildingLoot->fields();
-					tempLoot_name = buildingLootRow[0].getString();
-					string tempLoot_type = buildingLootRow[1].getString();
-					boxmax_amount = buildingLootRow[2].getInt16();
-					game_max = buildingLootRow[3].getInt16();
-					{
-						auto lootMax = getDB()->queryParams("SELECT count(loot_name) FROM ServerControlTable where loot_name = '%s'", getDB()->escape(tempLoot_name).c_str());
-						auto lootMaxRow = lootMax->fields();
-						lootMax_amount = lootMaxRow[0].getInt16();
-					}
-					if (lootMax_amount >= game_max) {
-						_logger.information("Too many items in game for (" + tempLoot_name + ")" );
-					}
-					else 
-					{
-						{
-							auto controlstmt = getDB()->makeStatement( _stmtInsertControlLoot,"INSERT `ServerControlTable` (loot_name) VALUES (?);");
-							controlstmt->addString(tempLoot_name);
-							bool exRes = controlstmt->execute();
-							poco_assert(exRes == true);
-						}
-						{
-							auto lootBoxMax = getDB()->queryParams("SELECT count(loot_name) FROM `%s`  where loot_name = '%s'", getDB()->escape(tablename1).c_str(), getDB()->escape(tempLoot_name).c_str());
-							auto lootBoxMaxRow = lootBoxMax->fields();
-							boxcount = lootBoxMaxRow[0].getInt16();
-						}
-						if (boxcount >= boxmax_amount) {
-							_logger.information("Too many items in box for (" + tempLoot_name + ")" );
-						} else {
-							{
-								auto lootboxcontrolStmt = getDB()->makeStatement( _stmtInsertLootBoxControlLoot,"INSERT " + tablename1 + "  (loot_name) VALUES (?);");
-								lootboxcontrolStmt->addString(tempLoot_name);
-								bool exRes = lootboxcontrolStmt->execute();
-								poco_assert(exRes == true);
-							}
-							variables.push_back(tempLoot_name);
-							variables.push_back(tempLoot_type);
-							_logger.information("Pushed Loot (" + lexical_cast<string>(tempLoot_name)+ ")");
-							
-						}
-					}
-				}
+
+			auto lootboxcontrolStmt = getDB()->makeStatement(_stmtDeleteLootBoxControlTable, "delete from lootboxcontrol where loot_guid = ?;");
+			lootboxcontrolStmt->addString(loot_guid);
+			bool exRes9 = lootboxcontrolStmt->directExecute();
+			//_logger.error("Deleting the guid id: " + loot_guid + " in loop" + loop);
+			//poco_assert(exRes9 == true);
+
+			auto loottempboxStmt = getDB()->makeStatement(_stmtDeleteTempLoot, "delete from lootboxtemp where loot_guid = ?;");
+			loottempboxStmt->addString(loot_guid);
+			bool exRes0 = loottempboxStmt->directExecute();
+			//_logger.error("Deleting the guid id: " + loot_guid + " in loop" + loop);
+			//poco_assert(exRes0 == true);
+
+			//_logger.error("Error: fetching loot for guid: " + loot_guid + " loop" + loop);
+			clock_t end = clock();
+			double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+			std::string str = boost::lexical_cast<std::string>(elapsed_secs);
+			std::string str2 = boost::lexical_cast<std::string>(count);
+			std::string str3 = boost::lexical_cast<std::string>(count2);
+			_logger.information("Total time to run building loot query (" + str + ")");
+			_logger.information("Total items pushed to temp loot table (" + str2 + ")");
+			_logger.information("Total items looped through (" + str3 + ")");
+			return;
+		}
+		int game_max = 0;
+		int lootMax_amount = 0;
+		int boxmax_amount = 0;
+		int boxcount = 0;
+		while (buildingLoot->fetchRow())
+		{
+			string tempLoot_name;
+			auto buildingLootRow = buildingLoot->fields();
 			
-				catch (const bad_lexical_cast&)
+			try
+			{
+				game_max = 0;
+				lootMax_amount = 0;
+				boxmax_amount = 0;
+				boxcount = 0;
+
+				
+				tempLoot_name = buildingLootRow[0].getString();
+				string tempLoot_type = buildingLootRow[1].getString();
+				boxmax_amount = buildingLootRow[2].getInt16();
+				game_max = buildingLootRow[3].getInt16();
+
+				auto lootMax = getDB()->queryParams("SELECT count(loot_name) FROM ServerControlTable where loot_name = '%s'", getDB()->escape(tempLoot_name).c_str());
+				auto lootMaxRow = lootMax->fields();
+				lootMax_amount = lootMaxRow[0].getInt16();
+
+				if (lootMax_amount >= game_max) {
+					//_logger.information("Too many items in game for (" + tempLoot_name + ")");
+				}
+				else
 				{
-					_logger.error("Skipping building loot " + lexical_cast<string>(tempLoot_name) + " load because of invalid data in db");
-					continue;
+						auto controlstmt = getDB()->makeStatement(_stmtInsertControlLoot, "INSERT INTO `ServerControlTable` (loot_name) VALUES (?);");
+						controlstmt->addString(tempLoot_name);
+						bool exRes = controlstmt->directExecute();
+						//poco_assert(exRes == true);
+						auto lootBoxMax = getDB()->queryParams("SELECT count(loot_name) FROM `lootboxcontrol` where loot_name = '%s' and loot_guid = '%s'", getDB()->escape(tempLoot_name).c_str(), getDB()->escape(loot_guid).c_str());
+						auto lootBoxMaxRow = lootBoxMax->fields();
+						//_logger.error("Selecting loot for guid id: " + loot_guid + " loop" + loop);
+						boxcount = lootBoxMaxRow[0].getInt16();
+					if (boxcount >= boxmax_amount) {
+						//_logger.information("Too many items in box for (" + tempLoot_name + ")");
+					}
+					else {
+
+						auto lootboxcontrolStmt = getDB()->makeStatement(_stmtInsertLootBoxControlLoot, "INSERT INTO lootboxcontrol (loot_guid, loot_name) VALUES (?,?);");
+						lootboxcontrolStmt->addString(loot_guid);
+						lootboxcontrolStmt->addString(tempLoot_name);
+						bool exRes = lootboxcontrolStmt->directExecute();
+						//_logger.error("Inserting loot for guid id: " + loot_guid + " lootboxcontrol loop" + loop);
+						//poco_assert(exRes == true);
+						//variables.push_back("LootStart");
+						Sqf::Parameters variables;
+						variables.push_back(tempLoot_name);
+						variables.push_back(tempLoot_type);
+						queue.push(variables);
+						//_logger.information("Pushed Loot (" + lexical_cast<string>(tempLoot_name)+")");
+
+					}
 				}
 			}
-			queue.push(variables);
+
+			catch (const bad_lexical_cast&)
+			{
+				_logger.error("Skipping building loot " + lexical_cast<string>(tempLoot_name)+" load because of invalid data in db");
+				continue;
+			}
+			
+		}
+		
+
+		{
+			auto lootboxcontrolStmt = getDB()->makeStatement(_stmtDeleteLootBoxControlTable, "delete from lootboxcontrol where loot_guid = ?;");
+			lootboxcontrolStmt->addString(loot_guid);
+			bool exRes9 = lootboxcontrolStmt->execute();
+			_logger.information("Deleting the guid id: " + loot_guid + " in loop" + loop);
+			poco_assert(exRes9 == true);
+
+			auto loottempboxStmt = getDB()->makeStatement(_stmtDeleteTempLoot, "delete from lootboxtemp where loot_guid = ?;");
+			loottempboxStmt->addString(loot_guid);
+			bool exRes0 = loottempboxStmt->execute();
+			_logger.information("Deleting the guid id: " + loot_guid + " in loop" + loop);
+			poco_assert(exRes0 == true);
 		}
 
-
-
-		/*{
-				auto dropStmt = getDB()->makeStatement( _stmtDeleteTempLoot,"DROP TABLE tempLootTable;");
-				bool exRes = dropStmt->execute();
-				poco_assert(exRes == true);
-		}*/
-
-	}
-	
-	{
-		auto tempLootBoxDropStmt = getDB()->makeStatement(_stmtDropLootBoxControlTable ,"DROP TABLE " + tablename1);
-		bool exRes = tempLootBoxDropStmt->execute();
-		poco_assert(exRes == true);
-	}
-
-	{
-		auto dropLootTablesStmt = getDB()->makeStatement( _stmtDeleteTempLoot,"DROP TABLE " + tablename2);
-		//auto dropLootTablesStmt = getDB()->makeStatement( _stmtDeleteTempLoot,"TRUNCATE tempLootTable;");
-		bool exRes = dropLootTablesStmt->execute();
-		poco_assert(exRes == true);
-	}
-
-	_logger.information("Pulled building loot for building (" + buildingName + ")" );
-	clock_t end = clock();
-	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-	std::string str = boost::lexical_cast<std::string>(elapsed_secs);
-	std::string str2 = boost::lexical_cast<std::string>(count);
-	std::string str3 = boost::lexical_cast<std::string>(count2);
-	_logger.information("Total time to run building loot query (" + str + ")" );
-	_logger.information("Total items pushed to temp loot table (" + str2 + ")" );
-	_logger.information("Total items looped through (" + str3 + ")" );
-	mtx.unlock();
+		//_logger.information("Pulled building loot for building (" + buildingName + ")");
+		clock_t end = clock();
+		double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+		std::string str = boost::lexical_cast<std::string>(elapsed_secs);
+		//std::string str2 = boost::lexical_cast<std::string>(count);
+		//std::string str3 = boost::lexical_cast<std::string>(count2);
+		_logger.information("Total time to run building loot query (" + str + ")");
+		//_logger.information("Total items pushed to temp loot table (" + str2 + ")");
+		//_logger.information("Total items looped through (" + str3 + ")");
 }

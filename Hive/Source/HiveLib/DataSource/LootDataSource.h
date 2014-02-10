@@ -28,4 +28,6 @@ public:
 	typedef std::queue<Sqf::Parameters> ServerLootsQueue;
 	typedef map<string,Sqf::Value> FieldsType;
 	virtual void fetchLootPiles( string buildingName, string buildingName1, string buildingName2, string buildingName3, int limitAmount, ServerLootsQueue& queue ) = 0;
+	virtual string createHouseTable(string houseUUID);
+	virtual string getUUID();
 };
