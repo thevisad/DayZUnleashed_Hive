@@ -204,9 +204,9 @@ bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectI
 {
 	unique_ptr<SqlStatement> stmt;
 	if (byUID)
-		stmt = getDB()->makeStatement(_stmtUpdateBuildingbyUID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectUID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtUpdateBuildingbyUID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectUID` = ? AND `instanceID` = ?");
 	else
-		stmt = getDB()->makeStatement(_stmtUpdateBuildingByID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtUpdateBuildingByID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectID` = ? AND `instanceID` = ?");
 
 	stmt->addString(lexical_cast<string>(inventory));
 	stmt->addInt64(objectIdent);
@@ -223,9 +223,9 @@ bool SqlBuildingDataSource::deleteBuilding( int serverId, Int64 objectIdent, boo
 {
 	unique_ptr<SqlStatement> stmt;
 	if (byUID)
-		stmt = getDB()->makeStatement(_stmtDeleteBuildingByUID, "DELETE FROM `instance_building` WHERE `ObjectUID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeleteBuildingByUID, "DELETE FROM `instance_building` WHERE `ObjectUID` = ? AND `instanceID` = ?");
 	else
-		stmt = getDB()->makeStatement(_stmtDeleteBuildingByID, "DELETE FROM `instance_building` WHERE `ObjectID` = ? AND `Instance` = ?");
+		stmt = getDB()->makeStatement(_stmtDeleteBuildingByID, "DELETE FROM `instance_building` WHERE `ObjectID` = ? AND `instanceID` = ?");
 
 	stmt->addInt64(objectIdent);
 	stmt->addInt32(serverId);
@@ -236,7 +236,7 @@ bool SqlBuildingDataSource::deleteBuilding( int serverId, Int64 objectIdent, boo
 	return exRes;
 }
 
-bool SqlBuildingDataSource::createBuilding( int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId )
+bool SqlBuildingDataSource::createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, const string& combinationId)
 {
 	auto createbuilding = getDB()->makeStatement(_stmtCreateBuilding, 
 		"INSERT INTO `instance_building` ( `objectUID`, `instanceId`, `buildingId`, `worldspace`, `inventory`, `hitpoints`, `characterid`, `squadId`,`combination`, `created`) "
@@ -254,7 +254,7 @@ bool SqlBuildingDataSource::createBuilding( int serverId, const string& classNam
 	createbuilding->addString(lexical_cast<string>(hitPoints));
 	createbuilding->addInt32(characterId);
 	createbuilding->addInt32(squadId);
-	createbuilding->addInt32(combinationId);
+	createbuilding->addString(combinationId);
 	bool exRes = createbuilding->execute();
 	poco_assert(exRes == true);
 

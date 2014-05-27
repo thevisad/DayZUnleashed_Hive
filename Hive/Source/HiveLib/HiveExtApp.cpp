@@ -165,11 +165,11 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 
 
 	//Inventory
-	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false);
-	//handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1,true);
+	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false); //cannot use as the buildings are by UID not ID
+	handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1,true);
 
 	//Delete
-	handlers[642] = boost::bind(&HiveExtApp::buildingDelete,this,_1,false);
+	//handlers[642] = boost::bind(&HiveExtApp::buildingDelete,this,_1,false); //cannot use as the buildings are by UID not ID
 	handlers[643] = boost::bind(&HiveExtApp::buildingDelete,this,_1,true);
 	//handlers[644] = boost::bind(&HiveExtApp::squadDelete,this,_1,false);
 	//handlers[645] = boost::bind(&HiveExtApp::squadDelete,this,_1,true);
@@ -783,7 +783,8 @@ Sqf::Value HiveExtApp::buildingPublish( Sqf::Parameters params )
 	Sqf::Value hitPoints = boost::get<Sqf::Parameters>(params.at(5));
 	int characterId = Sqf::GetIntAny(params.at(6));
 	int squadId = Sqf::GetIntAny(params.at(7));
-	int combinationId = Sqf::GetIntAny(params.at(8));
+	string combinationId = boost::get<string>(params.at(8));
+	//int combinationId = Sqf::GetIntAny(params.at(8));
 													
 	return ReturnBooleanStatus(_bldData->createBuilding(serverID,className,buildingUid,worldSpace,inventory,hitPoints,characterId,squadId,combinationId));
 }

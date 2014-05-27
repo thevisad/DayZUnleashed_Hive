@@ -31,8 +31,8 @@ public:
 	~SqlLootDataSource() {}
 
 	void fetchLootPiles( string buildingName, string buildingName1, string buildingName2, string buildingName3, int limitAmount, ServerLootsQueue& queue ) override;
-	string createHouseTable(string houseUUID) override;
-	string getUUID() override;
+	//string createHouseTable(string houseUUID) override;
+	//string getUUID() override;
 private:
 	string _LootTableName;
 

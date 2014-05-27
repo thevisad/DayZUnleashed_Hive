@@ -101,7 +101,7 @@ char genRandom()
 }
 
 int loot = 0;
-
+/*
 string SqlLootDataSource::createHouseTable(string buildingNameID)
 {
 
@@ -146,20 +146,21 @@ string SqlLootDataSource::getUUID()
 	return stringuuid;
 }
 
-
+*/
 
 void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingNameID, string buildingNameAlt1, string buildingNameAlt2, int limitAmount, ServerLootsQueue& queue ) {
 		clock_t begin = clock();
 		int count = 0;
 		int count2 = 0;
 		srand(time(0));
-
-		
+		boost::uuids::uuid uuid = boost::uuids::random_generator()();
+		std::string loot_guid = boost::lexical_cast<std::string>(uuid);
+		//string loot_guid = getUUID();
 		loot++;
 		std::string loop = boost::lexical_cast<std::string>(loot);
 		string loot_name;
 
-		string houseUUID = SqlLootDataSource::createHouseTable(buildingNameID);
+		//string houseUUID = SqlLootDataSource::createHouseTable(buildingNameID);
 
 
 		auto possibleLoot = getDB()->queryParams("SELECT building_loot.loot_name, building_loot.loot_type, building_loot.loot_max, building_loot.game_max FROM building_data "
@@ -175,7 +176,7 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 			std::string str = boost::lexical_cast<std::string>(elapsed_secs);
 			//std::string str2 = boost::lexical_cast<std::string>(count);
 			//std::string str3 = boost::lexical_cast<std::string>(count2);
-			_logger.information("Failed Loot: Total time to run building loot query (" + str + ")");
+			//_logger.information("Failed Loot: Total time to run building loot query (" + str + ")");
 			//_logger.information("Total items pushed to temp loot table (" + str2 + ")");
 			//_logger.information("Total items looped through (" + str3 + ")");
 			return;
@@ -207,7 +208,7 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 
 			catch (...) //catch (const bad_lexical_cast&)
 			{
-				_logger.error("Skipping building loot " + lexical_cast<string>(loot_name)+" load because of invalid data in db");
+				//_logger.error("Skipping building loot " + lexical_cast<string>(loot_name)+" load because of invalid data in db");
 				continue;
 			}
 		}
@@ -235,8 +236,8 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 			std::string str2 = boost::lexical_cast<std::string>(count);
 			std::string str3 = boost::lexical_cast<std::string>(count2);
 			_logger.information("Total time to run building loot query (" + str + ")");
-			_logger.information("Total items pushed to temp loot table (" + str2 + ")");
-			_logger.information("Total items looped through (" + str3 + ")");
+			//_logger.information("Total items pushed to temp loot table (" + str2 + ")");
+			//_logger.information("Total items looped through (" + str3 + ")");
 			return;
 		}
 		int game_max = 0;
@@ -273,7 +274,7 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 						auto controlstmt = getDB()->makeStatement(_stmtInsertControlLoot, "INSERT INTO `ServerControlTable` (loot_name) VALUES (?);");
 						controlstmt->addString(tempLoot_name);
 						bool exRes = controlstmt->directExecute();
-						//poco_assert(exRes == true);
+						//poco_assert(exRes == true     );
 						auto lootBoxMax = getDB()->queryParams("SELECT count(loot_name) FROM `lootboxcontrol` where loot_name = '%s' and loot_guid = '%s'", getDB()->escape(tempLoot_name).c_str(), getDB()->escape(loot_guid).c_str());
 						auto lootBoxMaxRow = lootBoxMax->fields();
 						//_logger.error("Selecting loot for guid id: " + loot_guid + " loop" + loop);
@@ -291,6 +292,7 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 						//poco_assert(exRes == true);
 						//variables.push_back("LootStart");
 						Sqf::Parameters variables;
+						//variables.push_back(string("LOOT"));
 						variables.push_back(tempLoot_name);
 						variables.push_back(tempLoot_type);
 						queue.push(variables);
@@ -302,7 +304,7 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 
 			catch (const bad_lexical_cast&)
 			{
-				_logger.error("Skipping building loot " + lexical_cast<string>(tempLoot_name)+" load because of invalid data in db");
+				//_logger.error("Skipping building loot " + lexical_cast<string>(tempLoot_name)+" load because of invalid data in db");
 				continue;
 			}
 			
@@ -313,13 +315,13 @@ void SqlLootDataSource::fetchLootPiles( string buildingName, string buildingName
 			auto lootboxcontrolStmt = getDB()->makeStatement(_stmtDeleteLootBoxControlTable, "delete from lootboxcontrol where loot_guid = ?;");
 			lootboxcontrolStmt->addString(loot_guid);
 			bool exRes9 = lootboxcontrolStmt->execute();
-			_logger.information("Deleting the guid id: " + loot_guid + " in loop" + loop);
+			//_logger.information("Deleting the guid id: " + loot_guid + " in loop" + loop);
 			poco_assert(exRes9 == true);
 
 			auto loottempboxStmt = getDB()->makeStatement(_stmtDeleteTempLoot, "delete from lootboxtemp where loot_guid = ?;");
 			loottempboxStmt->addString(loot_guid);
 			bool exRes0 = loottempboxStmt->execute();
-			_logger.information("Deleting the guid id: " + loot_guid + " in loop" + loop);
+			//_logger.information("Deleting the guid id: " + loot_guid + " in loop" + loop);
 			poco_assert(exRes0 == true);
 		}
 
