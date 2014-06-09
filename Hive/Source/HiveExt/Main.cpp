@@ -148,7 +148,8 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:30873:hunter:fdghfdghdf:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:30873:hunter:34:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:230:Land_HouseV_3I1::::30:");
-	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:643:58237110386217:1:");
+	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:400 : 1 : Land_DZE_LargeWoodDoorLocked : 5810611027514268 : [268.059, [5810.57, 11027.5, -0.143317]] : [] : [] : 39445 : 0 : Blue85 :");
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:643:58237110386217:1:");
 	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:641:5824311036415269:[[],[]]:1:");
 	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:230:Land_aif_hlaska:Land_afbarabizna:Land_cihlovej_dum_in:Land_HouseV_3I1:30:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:14276:testing:4564:");

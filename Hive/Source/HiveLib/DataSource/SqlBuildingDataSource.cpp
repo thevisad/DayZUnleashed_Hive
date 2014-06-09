@@ -236,7 +236,7 @@ bool SqlBuildingDataSource::deleteBuilding( int serverId, Int64 objectIdent, boo
 	return exRes;
 }
 
-bool SqlBuildingDataSource::createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, const string& combinationId)
+bool SqlBuildingDataSource::createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId)
 {
 	auto createbuilding = getDB()->makeStatement(_stmtCreateBuilding, 
 		"INSERT INTO `instance_building` ( `objectUID`, `instanceId`, `buildingId`, `worldspace`, `inventory`, `hitpoints`, `characterid`, `squadId`,`combination`, `created`) "
@@ -254,7 +254,7 @@ bool SqlBuildingDataSource::createBuilding(int serverId, const string& className
 	createbuilding->addString(lexical_cast<string>(hitPoints));
 	createbuilding->addInt32(characterId);
 	createbuilding->addInt32(squadId);
-	createbuilding->addString(combinationId);
+	createbuilding->addInt32(combinationId);
 	bool exRes = createbuilding->execute();
 	poco_assert(exRes == true);
 

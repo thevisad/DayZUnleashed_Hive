@@ -33,5 +33,5 @@ public:
 	virtual bool updateBuildingInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory ) = 0;
 
 	//Unleashed
-	virtual bool createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, const string& combinationId) = 0;
+	virtual bool createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId) = 0;
 };

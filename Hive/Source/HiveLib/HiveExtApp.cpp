@@ -783,8 +783,9 @@ Sqf::Value HiveExtApp::buildingPublish( Sqf::Parameters params )
 	Sqf::Value hitPoints = boost::get<Sqf::Parameters>(params.at(5));
 	int characterId = Sqf::GetIntAny(params.at(6));
 	int squadId = Sqf::GetIntAny(params.at(7));
-	string combinationId = boost::get<string>(params.at(8));
-	//int combinationId = Sqf::GetIntAny(params.at(8));
+	//string combinationId = Sqf::GetStringAny(params.at(8));
+	//string combinationId = boost::get<string>(params.at(8));
+	int combinationId = Sqf::GetIntAny(params.at(8));
 													
 	return ReturnBooleanStatus(_bldData->createBuilding(serverID,className,buildingUid,worldSpace,inventory,hitPoints,characterId,squadId,combinationId));
 }
