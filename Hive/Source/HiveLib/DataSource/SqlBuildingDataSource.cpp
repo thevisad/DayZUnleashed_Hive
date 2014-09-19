@@ -133,7 +133,8 @@ void SqlBuildingDataSource::populateBuildings( int serverId, ServerBuildingsQueu
 				}	
 				bldParams.push_back(lexical_cast<Sqf::Value>(row[5].getCStr()));
 				bldParams.push_back(row[6].getInt32());
-				bldParams.push_back(row[7].getInt32());
+				string objectCombination = row[7].getString();
+				bldParams.push_back(objectCombination);
 			}
 			
 		catch (const bad_lexical_cast&)
@@ -200,14 +201,10 @@ void SqlBuildingDataSource::populateGarageVehicles( int serverId, Int64 building
 }*/
 
 
-bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory )
+bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectIdent, const Sqf::Value& inventory )
 {
 	unique_ptr<SqlStatement> stmt;
-	if (byUID)
-		stmt = getDB()->makeStatement(_stmtUpdateBuildingbyUID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectUID` = ? AND `instanceID` = ?");
-	else
-		stmt = getDB()->makeStatement(_stmtUpdateBuildingByID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectID` = ? AND `instanceID` = ?");
-
+	stmt = getDB()->makeStatement(_stmtUpdateBuildingbyUID, "UPDATE `instance_building` SET `Inventory` = ? WHERE `ObjectUID` = ? AND `instanceID` = ?");
 	stmt->addString(lexical_cast<string>(inventory));
 	stmt->addInt64(objectIdent);
 	stmt->addInt32(serverId);
@@ -244,6 +241,31 @@ bool SqlBuildingDataSource::createBuilding(int serverId, const string& className
 
 	
 	_logger.information("HIVE: Building Insert " + lexical_cast<string>(buildingUid) + ":"+lexical_cast<string>(serverId) + ":" +lexical_cast<string>(className) + ":" +lexical_cast<string>(worldSpace) + ":"+lexical_cast<string>(inventory) + ":"+lexical_cast<string>(hitPoints) + ":"+lexical_cast<string>(characterId) + ":"+lexical_cast<string>(squadId) + ":"+lexical_cast<string>(combinationId)+ ":");
+	//_logger.error("HIVE: Statement " + lexical_cast<string>(stmt)+ ":");
+
+	createbuilding->addInt64(buildingUid);
+	createbuilding->addInt32(serverId);
+	createbuilding->addString(className);
+	createbuilding->addString(lexical_cast<string>(worldSpace));
+	createbuilding->addString(lexical_cast<string>(inventory));
+	createbuilding->addString(lexical_cast<string>(hitPoints));
+	createbuilding->addInt32(characterId);
+	createbuilding->addInt32(squadId);
+	createbuilding->addInt32(combinationId);
+	bool exRes = createbuilding->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+
+bool SqlBuildingDataSource::garageInsertion(int serverId, Int64 buildingUid)
+{
+	auto createbuilding = getDB()->makeStatement(_stmtCreateBuilding,
+		"INSERT INTO `instance_building` ( `objectUID`, `instanceId`, `buildingId`, `worldspace`, `inventory`, `hitpoints`, `characterid`, `squadId`,`combination`, `created`) "
+		"VALUES (?, ?, (SELECT building.id FROM building where building.class_name = ?), ?, ?, ?, (SELECT character_data.PlayerUID FROM character_data WHERE character_data.CharacterID = ?), ?, ?, CURRENT_TIMESTAMP)");
+
+
+	_logger.information("HIVE: Building Insert " + lexical_cast<string>(buildingUid)+":" + lexical_cast<string>(serverId)+":" + lexical_cast<string>(className)+":" + lexical_cast<string>(worldSpace)+":" + lexical_cast<string>(inventory)+":" + lexical_cast<string>(hitPoints)+":" + lexical_cast<string>(characterId)+":" + lexical_cast<string>(squadId)+":" + lexical_cast<string>(combinationId)+":");
 	//_logger.error("HIVE: Statement " + lexical_cast<string>(stmt)+ ":");
 
 	createbuilding->addInt64(buildingUid);

@@ -106,6 +106,8 @@ private:
 
 	Sqf::Value streamObjects(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
+	Sqf::Value removeFromGarage(Sqf::Parameters params);
+	Sqf::Value insertIntoGarage(Sqf::Parameters params);
 	Sqf::Value streamMessages(Sqf::Parameters params);
 	//Sqf::Value streamGarage(Sqf::Parameters params);
 	Sqf::Value streamSquad( Sqf::Parameters params );
@@ -115,7 +117,7 @@ private:
 
 	Sqf::Value objectPublish(Sqf::Parameters params);
 	Sqf::Value objectInventory(Sqf::Parameters params, bool byUID = false);
-	Sqf::Value buildingInventory(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value buildingInventory(Sqf::Parameters params);
 	Sqf::Value objectDelete(Sqf::Parameters params, bool byUID = false);
 	Sqf::Value buildingDelete(Sqf::Parameters params, bool byUID = false);
 	Sqf::Value playerQuestDelete(Sqf::Parameters params, bool byUID = false);

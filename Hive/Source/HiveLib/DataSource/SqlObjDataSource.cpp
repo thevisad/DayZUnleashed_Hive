@@ -92,14 +92,6 @@ SqlObjDataSource::SqlObjDataSource( Poco::Logger& logger, shared_ptr<Database> d
 
 void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue )
 {
-
-
-	{
-		auto serverControlDropStmt = getDB()->makeStatement(_stmtCreateTempTable ,"TRUNCATE ServerControlTable;");
-		bool exRes = serverControlDropStmt->execute();
-		poco_assert(exRes == true);
-	}
-
 	if (_cleanupPlacedDays >= 0)
 	{
 		string commonSql = "FROM `"+_objTableName+"` WHERE `Instance` = " + lexical_cast<string>(serverId) +

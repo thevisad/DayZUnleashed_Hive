@@ -34,6 +34,7 @@ SqlCharDataSource::~SqlCharDataSource() {}
 Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int serverId, const string& playerName )
 {
 	bool newPlayer = false;
+
 	//make sure player exists in db
 	{
 		auto playerRes(getDB()->queryParams(("SELECT `PlayerName`, `PlayerSex` FROM `Player_DATA` WHERE `"+_idFieldName+"`='%s'").c_str(), getDB()->escape(playerId).c_str()));
@@ -148,7 +149,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 		//try getting previous character info
 		{
 			auto prevCharRes = getDB()->queryParams(
-				("SELECT `Generation`, `Humanity`, `Model` FROM `Character_DATA` WHERE `"+_idFieldName+"` = '%s' AND `Alive` = 0 ORDER BY `CharacterID` DESC LIMIT 1").c_str(), getDB()->escape(playerId).c_str());
+				("SELECT `Generation`, `Humanity`, `Model` FROM `Character_DATA` WHERE `" + _idFieldName + "` = '%s' AND `Alive` = 0 ORDER BY `CharacterID` DESC LIMIT 1").c_str(), getDB()->escape(playerId).c_str());
 			if (prevCharRes && prevCharRes->fetchRow())
 			{
 				generation = prevCharRes->at(0).getInt32();
@@ -159,12 +160,26 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 				{
 					model = boost::get<string>(lexical_cast<Sqf::Value>(prevCharRes->at(2).getString()));
 				}
-				catch(...)
+				catch (...)
 				{
 					model = prevCharRes->at(2).getString();
 				}
 			}
 		}
+
+
+		{
+			auto playerRes(getDB()->queryParams(("SELECT cust_loadout.inventory,cust_loadout.backpack,cust_loadout.model FROM cust_loadout_profile INNER JOIN cust_loadout ON cust_loadout_profile.cust_loadout_id = cust_loadout.id where `" + _idFieldName + "`='%s'").c_str(), getDB()->escape(playerId).c_str()));
+			if (playerRes && playerRes->fetchRow())
+			{
+				inventory = lexical_cast<Sqf::Value>(playerRes->at(0).getString());
+				backpack = lexical_cast<Sqf::Value>(playerRes->at(1).getString());
+				model = boost::get<string>(lexical_cast<Sqf::Value>(playerRes->at(2).getString()));
+			}
+
+		}
+
+
 		Sqf::Value medical = Sqf::Parameters(); //script will fill this in if empty
 		//insert new char into db
 		{
@@ -269,11 +284,12 @@ Sqf::Value SqlCharDataSource::fetchCustomInventory( string playerId )
 			retVal.push_back(string("ERROR"));
 			return retVal;
 		}
+
 		inventory = lexical_cast<Sqf::Value>(CharRes->at(0).getString());
 		backpack = lexical_cast<Sqf::Value>(CharRes->at(1).getString());
 		model = CharRes->at(2).getString();
 	}
-	_logger.information("Pulled custom inventory for player (" + playerId + ")" );
+	_logger.debug("Pulled custom inventory for player (" + playerId + ")");
 	
 
 	Sqf::Parameters retVal;
@@ -287,28 +303,42 @@ Sqf::Value SqlCharDataSource::fetchCustomInventory( string playerId )
 
 Sqf::Value SqlCharDataSource::fetchCharacterVariable( int characterID, string variableName )
 {
+	string testvariables;
+	int _characterVariable = -1;
 
-	Sqf::Value variables = lexical_cast<Sqf::Value>("[]"); //empty inventory
-	
 	//get the characters medical
 	{
+		string test = "SELECT character_variables.variable_value FROM character_variables WHERE character_variables.characterID = " + lexical_cast<string>(characterID) + " AND character_variables.variable_name = '" + variableName + "'";
 		auto newCharRes(getDB()->queryParams(
-			"SELECT character_variables.variable_value FROM character_variables WHERE character_variables.characterID = %d AND character_variables.variable_name = '%s'", characterID,getDB()->escape(variableName).c_str()));
-		if (!newCharRes)
+			("SELECT character_variables.variable_value FROM character_variables WHERE character_variables.characterID = " + lexical_cast<string>(characterID) +" AND character_variables.variable_name = '%s'").c_str(), getDB()->escape(variableName).c_str()));
+
+		if (newCharRes && newCharRes->fetchRow())
 		{
-			_logger.error("Error fetching variable data for characterID " + characterID);
+
+				_characterVariable = newCharRes->at(0).getInt32();
+				testvariables = lexical_cast<string>(newCharRes->at(0).getString());
+		}
+		else
+		{
+			_logger.error("Error fetching variable " + variableName + "  for characterID " + lexical_cast<string>(characterID));
 			Sqf::Parameters retVal;
 			retVal.push_back(string("ERROR"));
 			return retVal;
 		}
-		variables = lexical_cast<Sqf::Value>(newCharRes->at(0).getString());
 	}
-	_logger.information("Pulled variable information '" + lexical_cast<string>(variables) + "' for player (" + lexical_cast<string>(characterID)+ ")" );
+	_logger.debug("Pulled variable information '" + lexical_cast<string>(variableName)+"' for player (" + lexical_cast<string>(characterID)+")");
 	
-
 	Sqf::Parameters retVal;
 	retVal.push_back(string("PASS"));
-	retVal.push_back(variables);
+	if (_characterVariable >= 0 )
+	{
+		retVal.push_back(_characterVariable);
+	}
+	else
+	{
+		retVal.push_back(testvariables);
+	}
+	
 
 	return retVal;
 }
@@ -336,7 +366,7 @@ Sqf::Value SqlCharDataSource::fetchCharacterVariableArray( int characterID )
 		}
 	}
 
-	_logger.information("Pulled variable array '" + lexical_cast<string>(variables) + "' for player (" + lexical_cast<string>(characterID) + ")" );
+	_logger.debug("Pulled variable array '" + lexical_cast<string>(variables)+"' for player (" + lexical_cast<string>(characterID)+")");
 	
 
 	Sqf::Parameters retVal;
@@ -545,8 +575,6 @@ bool SqlCharDataSource::updateVariables( int characterId, string variableName, s
 {
 
 	Sqf::Parameters retVal;
-	int survivalArr;
-	int testing;
 	bool exRes;
 	//get details from db
 	{

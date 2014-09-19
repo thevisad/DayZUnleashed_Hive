@@ -30,8 +30,9 @@ public:
 
 	//virtual void populateGarageVehicles( int serverId, Int64 buildingUID  ) = 0;
 	virtual bool deleteBuilding( int serverId, Int64 buildingIdent, bool byUID ) = 0;
-	virtual bool updateBuildingInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory ) = 0;
+	virtual bool updateBuildingInventory( int serverId, Int64 objectIdent, const Sqf::Value& inventory ) = 0;
 
 	//Unleashed
+	virtual bool garageInsertion(int serverId, Int64 buildingUid) = 0;
 	virtual bool createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId) = 0;
 };

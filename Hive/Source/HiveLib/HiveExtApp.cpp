@@ -155,6 +155,8 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	//handlers[603] = boost::bind(&HiveExtApp::streamInstance,this,_1);
 	//handlers[604] = boost::bind(&HiveExtApp::streamQuest,this,_1);
 	//handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
+	handlers[606] = boost::bind(&HiveExtApp::removeFromGarage, this, _1);
+	handlers[607] = boost::bind(&HiveExtApp::insertIntoGarage, this, _1);
 
 
 	//Messaging/Custom inventory
@@ -166,7 +168,7 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 
 	//Inventory
 	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false); //cannot use as the buildings are by UID not ID
-	handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1,true);
+	handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1);
 
 	//Delete
 	//handlers[642] = boost::bind(&HiveExtApp::buildingDelete,this,_1,false); //cannot use as the buildings are by UID not ID
@@ -398,9 +400,7 @@ Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 			_bldData->populateBuildings(serverId, _srvBuildings);
 			Sqf::Parameters retVal;
 			retVal.push_back(string("BuildingStreamStart"));
-			int test = static_cast<int>(_srvBuildings.size());
 			retVal.push_back(static_cast<int>(_srvBuildings.size()));
-			//retVal.push_back(_initKey);
 			return retVal;
 	}
 	else
@@ -412,7 +412,61 @@ Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 	}
 }
 
+Sqf::Value HiveExtApp::removeFromGarage(Sqf::Parameters params)
+{
+	if (_srvObjects.empty())
+	{
+		if (_initKey.length() < 1)
+		{
+			int serverId = boost::get<int>(params.at(0));
+			Int64 vehicleUID = Sqf::GetBigInt(params.at(1));
+			setServerId(serverId);
 
+			_objData->populateObjects(getServerId(), _srvObjects);
+			//set up initKey
+			{
+				boost::array<UInt8, 16> keyData;
+				Poco::RandomInputStream().read((char*)keyData.c_array(), keyData.size());
+				std::ostringstream ostr;
+				Poco::HexBinaryEncoder enc(ostr);
+				enc.rdbuf()->setLineLength(0);
+				enc.write((const char*)keyData.data(), keyData.size());
+				enc.close();
+				_initKey = ostr.str();
+			}
+
+
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ObjectStreamStart"));
+			int test = static_cast<int>(_srvObjects.size());
+			retVal.push_back(static_cast<int>(_srvObjects.size()));
+			retVal.push_back(_initKey);
+			return retVal;
+		}
+		else
+		{
+			Sqf::Parameters retVal;
+			retVal.push_back(string("ERROR"));
+			retVal.push_back(string("Instance already initialized"));
+			return retVal;
+		}
+	}
+	else
+	{
+		Sqf::Parameters retVal = _srvObjects.front();
+		_srvObjects.pop();
+
+		return retVal;
+	}
+}
+
+Sqf::Value HiveExtApp::insertIntoGarage(Sqf::Parameters params)
+{
+	int serverID = Sqf::GetIntAny(params.at(0));
+	Int64 vehicleUID = Sqf::GetBigInt(params.at(1));
+
+	return ReturnBooleanStatus(_bldData->garageInsertion(serverID, vehicleUID));
+}
 
 Sqf::Value HiveExtApp::streamMessages( Sqf::Parameters params )
 {
@@ -669,13 +723,13 @@ Sqf::Value HiveExtApp::objectInventory( Sqf::Parameters params, bool byUID /*= f
 	return ReturnBooleanStatus(true);
 }
 
-Sqf::Value HiveExtApp::buildingInventory( Sqf::Parameters params, bool byUID /*= false*/ )
+Sqf::Value HiveExtApp::buildingInventory( Sqf::Parameters params /*= false*/ )
 {
 	Int64 buildingIdent = Sqf::GetBigInt(params.at(0));
 	Sqf::Value inventory = boost::get<Sqf::Parameters>(params.at(1));
 
 	if (buildingIdent != 0) //all the vehicles have objectUID = 0, so it would be bad to update those
-		return ReturnBooleanStatus(_bldData->updateBuildingInventory(getServerId(),buildingIdent,byUID,inventory));
+		return ReturnBooleanStatus(_bldData->updateBuildingInventory(getServerId(),buildingIdent,inventory));
 
 	return ReturnBooleanStatus(true);
 }

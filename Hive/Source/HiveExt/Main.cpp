@@ -148,7 +148,7 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:30873:hunter:fdghfdghdf:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:30873:hunter:34:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:230:Land_HouseV_3I1::::30:");
-	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:400 : 1 : Land_DZE_LargeWoodDoorLocked : 5810611027514268 : [268.059, [5810.57, 11027.5, -0.143317]] : [] : [] : 39445 : 0 : Blue85 :");
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:400 : 1 : Land_DZE_LargeWoodDoorLocked : 5810611027514268 : [268.059, [5810.57, 11027.5, -0.143317]] : [] : [] : 39445 : 0 : Blue85 :");
 	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:643:58237110386217:1:");
 	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:641:5824311036415269:[[],[]]:1:");
 	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:230:Land_aif_hlaska:Land_afbarabizna:Land_cihlovej_dum_in:Land_HouseV_3I1:30:");
@@ -156,20 +156,23 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:14276:fuckface:5645:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:14276:tightcunt:767:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:152:30872:Pin:54363:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:hunter1:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:hunter:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:medical:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:153:5464356:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:153:39445:");
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:151:39445:test:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:39445:vXP:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:39445:vEN:");	
+	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:600:1:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:testing:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:fuckface:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:tightcunt:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:dicklick:");
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:153:30872:");
+
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:21375:[299,[12617.9,15447.4,0.002]]:[]:[]:[false,false,false,false,false,false,false,12000,[],[0,0],0,[0.05,50.684]]:false:false:0:0:3267:1:[,aidlpercmstpsnonwnondnon_player_idlesteady04,40]:0:0:TheVisad_DZU:0:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:2:WoodGate_DZ:32432432322342:[40.1727,[13040.8,15735,0.014276253]]:[]:[]:143:0:907:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:11:[]:[]:[]:[]:false:false:0:0:0:0:[]:0:0::0:2:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:201:5700692:[80,[2588.59,10073.7,0.001]]:");
 	
-	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:101:23572678:1311:Audris:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:101:76561198013702927:1:Thevisad:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:308:1:Wire_cat1:0:6255222:[329.449,[10554.4,3054.12,0]]:[]:[]:0:1.055e14:356:");
 	//										  |CHILD:400:1:Fort_RazorWire:12790215031911209:[208.744,[12790.2,15031.9,1.14432]]:[]:[]:929:0:514:|
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:400:1:Fort_RazorWire:12790215031911209:[208.744,[12790.2,15031.9,1.14432]]:[]:[]:929:0:514:");

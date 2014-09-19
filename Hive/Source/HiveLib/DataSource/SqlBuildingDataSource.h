@@ -31,9 +31,10 @@ public:
 
 	void populateBuildings( int serverId, ServerBuildingsQueue& queue ) override;
 	//void populateGarageVehicles( int serverId, Int64 buildingUID  ) override;
-	bool updateBuildingInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory ) override;
+	bool updateBuildingInventory( int serverId, Int64 objectIdent, const Sqf::Value& inventory ) override;
 	bool deleteBuilding( int serverId, Int64 buildingIdent, bool byUID ) override;
-	bool createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId) override;
+	bool garageInsertion(int serverId, Int64 buildingUid) override;
+	bool createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId) override; 
 private:
 	string _buildingTableName;
 
