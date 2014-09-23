@@ -161,7 +161,9 @@ int main()
 	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:151:39445:test:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:39445:vXP:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:39445:vEN:");	
-	RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:600:1:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:600:1:");
+	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:101 : 76561198014202008 : 1 : thevisad :");
+	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:101 : 76561198013702927 : 1 : thevisad :");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:testing:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:fuckface:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:tightcunt:");

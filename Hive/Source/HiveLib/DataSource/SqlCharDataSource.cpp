@@ -167,14 +167,45 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 			}
 		}
 
-
 		{
-			auto playerRes(getDB()->queryParams(("SELECT cust_loadout.inventory,cust_loadout.backpack,cust_loadout.model FROM cust_loadout_profile INNER JOIN cust_loadout ON cust_loadout_profile.cust_loadout_id = cust_loadout.id where `" + _idFieldName + "`='%s'").c_str(), getDB()->escape(playerId).c_str()));
-			if (playerRes && playerRes->fetchRow())
+			auto playerData(getDB()->queryParams(
+				"SELECT cust_loadout.inventory,cust_loadout.backpack,cust_loadout.model FROM cust_loadout_profile INNER JOIN cust_loadout ON cust_loadout_profile.cust_loadout_id = cust_loadout.id where `unique_id` = '%s'", getDB()->escape(playerId).c_str()));
+			if (playerData && playerData->fetchRow())
 			{
-				inventory = lexical_cast<Sqf::Value>(playerRes->at(0).getString());
-				backpack = lexical_cast<Sqf::Value>(playerRes->at(1).getString());
-				model = boost::get<string>(lexical_cast<Sqf::Value>(playerRes->at(2).getString()));
+				if (!playerData->at(0).isNull()) //inventory can be null
+				{
+					try
+					{
+						//inventory = playerData->at(0).getString();
+						inventory = lexical_cast<Sqf::Value>(playerData->at(0).getString());
+						try { SanitiseInv(boost::get<Sqf::Parameters>(inventory)); }
+						catch (const boost::bad_get&) {}
+					}
+					catch (bad_lexical_cast)
+					{
+						_logger.warning("Invalid Custom Inventory for playerId(" + lexical_cast<string>(playerId)+"): " + lexical_cast<string>(inventory));
+					}
+				}
+
+				if (!playerData->at(1).isNull()) //inventory can be null
+				{
+					try
+					{
+						backpack = lexical_cast<Sqf::Value>(playerData->at(1).getString());
+					}
+					catch (bad_lexical_cast)
+					{
+						_logger.warning("Invalid Custom Backpack for playerId(" + lexical_cast<string>(playerId)+"): " + lexical_cast<string>(backpack));
+					}
+				}
+				
+				if (!playerData->at(2).isNull()) //inventory can be null
+				{
+					model = playerData->at(2).getString();
+					//model = boost::get<string>(lexical_cast<Sqf::Value>(playerData->at(2).getString()));
+				}
+				
+				
 			}
 
 		}
@@ -219,20 +250,22 @@ Sqf::Value SqlCharDataSource::fetchCharacterInitial( string playerId, int server
 		_logger.information("Created a new character " + lexical_cast<string>(characterId) + " for player '" + playerName + "' (" + playerId + ")" );
 	}
 
-	Sqf::Parameters retVal;
-	retVal.push_back(string("PASS"));
-	retVal.push_back(newPlayer);
-	retVal.push_back(lexical_cast<string>(characterId));
+	Sqf::Parameters retVal; //current/original/new/
+	retVal.push_back(string("PASS")); //0/0/0/
+	retVal.push_back(newChar); //1/1/1/
+	retVal.push_back(lexical_cast<string>(characterId));//2/2/2/
 	if (!newChar)
 	{
-		retVal.push_back(worldSpace);
-		retVal.push_back(inventory);
-		retVal.push_back(backpack);
-		retVal.push_back(survival);
+		retVal.push_back(worldSpace);//3/3/
+		//retVal.push_back(inventory);//0/4/
+		//retVal.push_back(backpack);//0/5/
+		retVal.push_back(survival);//4/6/
 	}
-	retVal.push_back(model);
+	retVal.push_back(inventory);//5/0/3/
+	retVal.push_back(backpack);//6/0/4/
+	retVal.push_back(model);//7/7/5/
 	//hive interface version
-	retVal.push_back(0.96f);
+	retVal.push_back(0.96f);//8/8/6/
 
 	return retVal;
 }
