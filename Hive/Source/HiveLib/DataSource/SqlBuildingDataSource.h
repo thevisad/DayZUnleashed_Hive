@@ -18,8 +18,10 @@
 
 #pragma once
 
+#include "SqlObjDataSource.h"
 #include "SqlDataSource.h"
 #include "BuildingDataSource.h"
+#include "ObjDataSource.h"
 #include "Database/SqlStatement.h"
 
 namespace Poco { namespace Util { class AbstractConfiguration; }; };
@@ -30,17 +32,26 @@ public:
 	~SqlBuildingDataSource() {}
 
 	void populateBuildings( int serverId, ServerBuildingsQueue& queue ) override;
-	//void populateGarageVehicles( int serverId, Int64 buildingUID  ) override;
+	void populateGarages(int serverId, ServerGaragesQueue& queue) override;
+	void fetchVehicleArray(int serverId, string garageID, ServerGaragesQueue& queue) override;
 	bool updateBuildingInventory( int serverId, Int64 objectIdent, const Sqf::Value& inventory ) override;
-	bool deleteBuilding( int serverId, Int64 buildingIdent, bool byUID ) override;
-	bool garageInsertion(int serverId, Int64 buildingUid) override;
+	bool deleteBuilding( int serverId, Int64 buildingIdent) override;
+	bool deleteGarageVehicle(int serverId, string garageID, string vehicleIdent) override;
+	bool garageInsertion(int serverId, string garageid, string vehicleUid) override;
 	bool createBuilding(int serverId, const string& className, Int64 buildingUid, const Sqf::Value& worldSpace, const Sqf::Value& inventory, const Sqf::Value& hitPoints, int characterId, int squadId, int combinationId) override; 
+	bool createGarage(int serverId, const string& className, string buildingUid, const Sqf::Value& worldSpace, string characterId) override;
 private:
 	string _buildingTableName;
+	string _objTableName;
 
 	SqlStatementID _stmtCreateBuilding;
+	SqlStatementID _stmtDeleteGarageVehicle;
+	SqlStatementID _stmtInsertVehicleByUID;
+	SqlStatementID _stmtInsertGarageVehicle;
+	SqlStatementID _stmtDeleteWorldVehicle;
 	SqlStatementID _stmtUpdateBuildingbyUID;
 	SqlStatementID _stmtUpdateBuildingByID;
 	SqlStatementID _stmtDeleteBuildingByUID;
+	SqlStatementID _stmtDeleteVehicleByUID;
 	SqlStatementID _stmtDeleteBuildingByID;
 };

@@ -140,6 +140,7 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:421:2:HNGamers:22773510:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:422:1:22773510:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:220:1:");
+	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:104:1:76561198013702927:zdeath:[338,[16625.7,14587.3,0.001]]:"); //recordActivity(int serverID, string playerId, string action, string maplocation)
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:221:22773510:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:552:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:302:2:");
@@ -162,8 +163,17 @@ int main()
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:39445:vXP:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:39445:vEN:");	
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:600:1:");
-	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:101 : 76561198014202008 : 1 : thevisad :");
-	RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:101 : 76561198013702927 : 1 : thevisad :");
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:101 : 76561198014202008 : 1 : thevisad :");
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:101 : 76561198013702927 : 1 : thevisad :");
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:304:1:287257586:");
+	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:605:1:");
+
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:606:1:46232122900272180:"); //serverId, garageID  - vehiclesInGarage
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:607:1:46232122900272180:1594191180200120:"); //serverID, garageID, vehicleIdent - removeFromGarage
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:608:1:166235145929105334:1594191180200120:"); //_serverID, _garageid, _vehicleUID - insertIntoGarage
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:609:1:46232122900272180:1594191180200120:"); //serverId, garageID, vehicleUID - streamVehicle
+	//RVExtension(testOutBuf, sizeof(testOutBuf), "CHILD:610:1 : blah : 46232122900272180 : [23, [23, 23, 23]] : 76561198013702927 :"); //serverID, className, buildingUid, worldSpace,  characterId - garagePublish
+	
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:testing:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:fuckface:");
 	//RVExtension(testOutBuf,sizeof(testOutBuf),"CHILD:151:14276:tightcunt:");

@@ -154,10 +154,12 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	//handlers[602] = boost::bind(&HiveExtApp::streamPlayerSquad,this,_1);		
 	//handlers[603] = boost::bind(&HiveExtApp::streamInstance,this,_1);
 	//handlers[604] = boost::bind(&HiveExtApp::streamQuest,this,_1);
-	//handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
-	handlers[606] = boost::bind(&HiveExtApp::removeFromGarage, this, _1);
-	handlers[607] = boost::bind(&HiveExtApp::insertIntoGarage, this, _1);
-
+	handlers[605] = boost::bind(&HiveExtApp::streamGarage,this,_1);	
+	handlers[606] = boost::bind(&HiveExtApp::vehiclesInGarage, this, _1);
+	handlers[607] = boost::bind(&HiveExtApp::removeFromGarage, this, _1);
+	handlers[608] = boost::bind(&HiveExtApp::insertIntoGarage, this, _1);
+	handlers[609] = boost::bind(&HiveExtApp::streamVehicle, this, _1);
+	handlers[610] = boost::bind(&HiveExtApp::garagePublish, this, _1);
 
 	//Messaging/Custom inventory
 	handlers[220] = boost::bind(&HiveExtApp::streamMessages,this,_1);	
@@ -167,12 +169,10 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 
 
 	//Inventory
-	//handlers[640] = boost::bind(&HiveExtApp::buildingInventory,this,_1,false); //cannot use as the buildings are by UID not ID
 	handlers[641] = boost::bind(&HiveExtApp::buildingInventory,this,_1);
 
 	//Delete
-	//handlers[642] = boost::bind(&HiveExtApp::buildingDelete,this,_1,false); //cannot use as the buildings are by UID not ID
-	handlers[643] = boost::bind(&HiveExtApp::buildingDelete,this,_1,true);
+	handlers[643] = boost::bind(&HiveExtApp::buildingDelete,this,_1);
 	//handlers[644] = boost::bind(&HiveExtApp::squadDelete,this,_1,false);
 	//handlers[645] = boost::bind(&HiveExtApp::squadDelete,this,_1,true);
 	//handlers[646] = boost::bind(&HiveExtApp::playerSquadDelete,this,_1,false);
@@ -184,6 +184,7 @@ HiveExtApp::HiveExtApp(string suffixDir) : AppServer("HiveExt",suffixDir), _serv
 	handlers[101] = boost::bind(&HiveExtApp::loadPlayer,this,_1);
 	handlers[102] = boost::bind(&HiveExtApp::loadCharacterDetails,this,_1);
 	handlers[103] = boost::bind(&HiveExtApp::recordCharacterLogin,this,_1);
+	handlers[104] = boost::bind(&HiveExtApp::recordCharacterActivity, this, _1);
 	handlers[150] = boost::bind(&HiveExtApp::loadPlayerMedical,this,_1);
 	handlers[151] = boost::bind(&HiveExtApp::loadCharacterVariables,this,_1);
 	handlers[152] = boost::bind(&HiveExtApp::recordCharacterVariables,this,_1);
@@ -388,20 +389,43 @@ Sqf::Value HiveExtApp::streamObjects( Sqf::Parameters params )
 	}
 }
 
+Sqf::Value HiveExtApp::streamVehicle(Sqf::Parameters params)
+{
+	if (_srvGarageVehicleObjects.empty())
+	{
+		int serverId = boost::get<int>(params.at(0));
+		string garageID = Sqf::GetStringAny(params.at(1));
+		string vehicleUID = Sqf::GetStringAny(params.at(2));
+		
+		_objData->populateVehicle(serverId, vehicleUID, garageID, _srvGarageVehicleObjects);
+
+		Sqf::Parameters retVal;
+		retVal.push_back(string("GarageVehicleStreamStart"));
+		int test = static_cast<int>(_srvGarageVehicleObjects.size());
+		retVal.push_back(static_cast<int>(_srvGarageVehicleObjects.size()));
+		return retVal;
+	}
+	else
+	{
+		Sqf::Parameters retVal = _srvGarageVehicleObjects.front();
+		_srvGarageVehicleObjects.pop();
+
+		return retVal;
+	}
+}
 #include "DataSource/BuildingDataSource.h"
 
 Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 {
 	if (_srvBuildings.empty())
 	{
-
-			int serverId = boost::get<int>(params.at(0));
-			setServerId(serverId);
-			_bldData->populateBuildings(serverId, _srvBuildings);
-			Sqf::Parameters retVal;
-			retVal.push_back(string("BuildingStreamStart"));
-			retVal.push_back(static_cast<int>(_srvBuildings.size()));
-			return retVal;
+		int serverId = boost::get<int>(params.at(0));
+		setServerId(serverId);
+		_bldData->populateBuildings(serverId, _srvBuildings);
+		Sqf::Parameters retVal;
+		retVal.push_back(string("BuildingStreamStart"));
+		retVal.push_back(static_cast<int>(_srvBuildings.size()));
+		return retVal;
 	}
 	else
 	{
@@ -412,60 +436,13 @@ Sqf::Value HiveExtApp::streamBuildings( Sqf::Parameters params )
 	}
 }
 
-Sqf::Value HiveExtApp::removeFromGarage(Sqf::Parameters params)
-{
-	if (_srvObjects.empty())
-	{
-		if (_initKey.length() < 1)
-		{
-			int serverId = boost::get<int>(params.at(0));
-			Int64 vehicleUID = Sqf::GetBigInt(params.at(1));
-			setServerId(serverId);
-
-			_objData->populateObjects(getServerId(), _srvObjects);
-			//set up initKey
-			{
-				boost::array<UInt8, 16> keyData;
-				Poco::RandomInputStream().read((char*)keyData.c_array(), keyData.size());
-				std::ostringstream ostr;
-				Poco::HexBinaryEncoder enc(ostr);
-				enc.rdbuf()->setLineLength(0);
-				enc.write((const char*)keyData.data(), keyData.size());
-				enc.close();
-				_initKey = ostr.str();
-			}
-
-
-			Sqf::Parameters retVal;
-			retVal.push_back(string("ObjectStreamStart"));
-			int test = static_cast<int>(_srvObjects.size());
-			retVal.push_back(static_cast<int>(_srvObjects.size()));
-			retVal.push_back(_initKey);
-			return retVal;
-		}
-		else
-		{
-			Sqf::Parameters retVal;
-			retVal.push_back(string("ERROR"));
-			retVal.push_back(string("Instance already initialized"));
-			return retVal;
-		}
-	}
-	else
-	{
-		Sqf::Parameters retVal = _srvObjects.front();
-		_srvObjects.pop();
-
-		return retVal;
-	}
-}
-
 Sqf::Value HiveExtApp::insertIntoGarage(Sqf::Parameters params)
 {
-	int serverID = Sqf::GetIntAny(params.at(0));
-	Int64 vehicleUID = Sqf::GetBigInt(params.at(1));
+	int _serverID = Sqf::GetIntAny(params.at(0));
+	string _vehicleUID = Sqf::GetStringAny(params.at(1));
+	string _garageid = Sqf::GetStringAny(params.at(2));
 
-	return ReturnBooleanStatus(_bldData->garageInsertion(serverID, vehicleUID));
+	return ReturnBooleanStatus(_bldData->garageInsertion(_serverID, _garageid, _vehicleUID));
 }
 
 Sqf::Value HiveExtApp::streamMessages( Sqf::Parameters params )
@@ -589,19 +566,17 @@ Sqf::Value HiveExtApp::loadAHWhiteList( Sqf::Parameters params )
 }
 
 
-/*Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
+Sqf::Value HiveExtApp::streamGarage( Sqf::Parameters params )
 {
 	if (_srvGarage.empty())
 	{
 
 			int serverId = boost::get<int>(params.at(0));
-			int buildingUID = boost::get<int>(params.at(0));
 			setServerId(serverId);
-			_bldData->populateGarageVehicles(getServerId(), buildingUID);
+			_bldData->populateGarages(getServerId(), _srvGarage);
 			Sqf::Parameters retVal;
 			retVal.push_back(string("GarageStreamStart"));
 			retVal.push_back(static_cast<int>(_srvGarage.size()));
-			//retVal.push_back(_initKey);
 			return retVal;
 	}
 	else
@@ -611,7 +586,29 @@ Sqf::Value HiveExtApp::loadAHWhiteList( Sqf::Parameters params )
 
 		return retVal;
 	}
-}*/
+}
+
+Sqf::Value HiveExtApp::vehiclesInGarage(Sqf::Parameters params)
+{
+	
+	if (_srvGarage.empty())
+	{
+		int serverId = boost::get<int>(params.at(0));
+		string garageID = Sqf::GetStringAny(params.at(1));
+		_bldData->fetchVehicleArray(serverId, garageID, _srvGarage);
+		Sqf::Parameters retVal;
+		retVal.push_back(string("VehicleStreamStart"));
+		retVal.push_back(static_cast<int>(_srvGarage.size()));
+		return retVal;
+	}
+	else
+	{
+		Sqf::Parameters retVal = _srvGarage.front();
+		_srvGarage.pop();
+
+		return retVal;
+	}
+}
 
 Sqf::Value HiveExtApp::streamSquad( Sqf::Parameters params )
 {
@@ -747,14 +744,22 @@ Sqf::Value HiveExtApp::objectDelete( Sqf::Parameters params, bool byUID /*= fals
 
 
 
-Sqf::Value HiveExtApp::buildingDelete( Sqf::Parameters params, bool byUID /*= false*/ )
+Sqf::Value HiveExtApp::buildingDelete( Sqf::Parameters params)
 {
 	Int64 buildingIdent = Sqf::GetBigInt(params.at(0));
 
 	if (buildingIdent != 0) //all the vehicles have objectUID = 0, so it would be bad to delete those
-		return ReturnBooleanStatus(_bldData->deleteBuilding(getServerId(),buildingIdent,byUID));
+		return ReturnBooleanStatus(_bldData->deleteBuilding(getServerId(),buildingIdent));
 
 	return ReturnBooleanStatus(true);
+}
+
+Sqf::Value HiveExtApp::removeFromGarage(Sqf::Parameters params)
+{
+	int serverID = Sqf::GetIntAny(params.at(0));
+	string vehicleIdent = Sqf::GetStringAny(params.at(1));
+	string garageID = Sqf::GetStringAny(params.at(2));
+	return ReturnBooleanStatus(_bldData->deleteGarageVehicle(serverID, garageID, vehicleIdent));
 }
 
 Sqf::Value HiveExtApp::squadDelete( Sqf::Parameters params, bool byUID /*= false*/ )
@@ -844,6 +849,18 @@ Sqf::Value HiveExtApp::buildingPublish( Sqf::Parameters params )
 	return ReturnBooleanStatus(_bldData->createBuilding(serverID,className,buildingUid,worldSpace,inventory,hitPoints,characterId,squadId,combinationId));
 }
 
+Sqf::Value HiveExtApp::garagePublish(Sqf::Parameters params)
+{
+	
+	int serverID = Sqf::GetIntAny(params.at(0));
+	string className = boost::get<string>(params.at(1));
+	string buildingUid = Sqf::GetStringAny(params.at(2));
+	Sqf::Value worldSpace = boost::get<Sqf::Parameters>(params.at(3));
+	string characterId = Sqf::GetStringAny(params.at(4));
+
+	return ReturnBooleanStatus(_bldData->createGarage(serverID, className, buildingUid, worldSpace,  characterId));
+}
+
 Sqf::Value HiveExtApp::instancePublish( Sqf::Parameters params )
 {
 	int serverID = Sqf::GetIntAny(params.at(0));
@@ -928,6 +945,7 @@ Sqf::Value HiveExtApp::loadCharacterVariableArray( Sqf::Parameters params )
 	return _charData->fetchCharacterVariableArray(characterID);
 }
 
+
 Sqf::Value HiveExtApp::loadCharacterDetails( Sqf::Parameters params )
 {
 	int characterId = Sqf::GetIntAny(params.at(0));
@@ -942,6 +960,16 @@ Sqf::Value HiveExtApp::recordCharacterLogin( Sqf::Parameters params )
 	int action = Sqf::GetIntAny(params.at(2));
 
 	return ReturnBooleanStatus(_charData->recordLogin(playerId,characterId,action));
+}
+
+Sqf::Value HiveExtApp::recordCharacterActivity(Sqf::Parameters params)
+{
+	int serverID = Sqf::GetIntAny(params.at(0));
+	string playerId = Sqf::GetStringAny(params.at(1));
+	string action = Sqf::GetStringAny(params.at(2));
+	string maplocation = Sqf::GetStringAny(params.at(3));
+
+	return ReturnBooleanStatus(_charData->recordActivity(serverID, playerId, action, maplocation));
 }
 
 Sqf::Value HiveExtApp::playerUpdate( Sqf::Parameters params )

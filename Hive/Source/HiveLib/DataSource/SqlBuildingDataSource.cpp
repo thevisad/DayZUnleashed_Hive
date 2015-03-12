@@ -20,6 +20,7 @@
 #include "Database/Database.h"
 
 #include <boost/format.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
@@ -69,26 +70,23 @@ namespace
 	};
 
 	PositionInfo FixOOBWorldspace(Sqf::Value& v) { return boost::apply_visitor(WorldspaceFixerVisitor(),v); }
+
 };
 
 #include <Poco/Util/AbstractConfiguration.h>
 
 SqlBuildingDataSource::SqlBuildingDataSource( Poco::Logger& logger, shared_ptr<Database> db, const Poco::Util::AbstractConfiguration* conf ) : SqlDataSource(logger,db)
 {
-	static const string defaultTable = "instance_buildings"; 
-	/*
+	static const string defaultObjectTable = "Object_DATA"; 
+
 	if (conf != NULL)
 	{
-		_objTableName = getDB()->escape(conf->getString("Table",defaultTable));
-		_cleanupPlacedDays = conf->getInt("CleanupPlacedAfterDays",6);
-		_vehicleOOBReset = conf->getBool("ResetOOBVehicles",false);
+		_objTableName = getDB()->escape(conf->getString("Table", defaultObjectTable));
 	}
 	else
 	{
-		_objTableName = defaultTable;
-		_cleanupPlacedDays = -1;
-		_vehicleOOBReset = false;
-	}*/
+		_objTableName = defaultObjectTable;
+	}
 }
 
 
@@ -146,59 +144,112 @@ void SqlBuildingDataSource::populateBuildings( int serverId, ServerBuildingsQueu
 		queue.push(bldParams);
 	}
 }
-/*
-void SqlBuildingDataSource::populateGarageVehicles( int serverId, Int64 buildingUID  )
+
+
+
+void SqlBuildingDataSource::populateGarages(int serverId, ServerGaragesQueue& queue)
 {
+	auto garageResource = getDB()->queryParams("SELECT instance_garagebuilding.objectUID, instance_garagebuilding.buildingClass, instance_garagebuilding.worldspace, "
+		"instance_garagebuilding.playerId,instance_garagebuilding.id FROM instance_garagebuilding WHERE instance_garagebuilding.instanceId = %d", serverId );
 
-	
-	auto worldBuildRes = getDB()->queryParams("SELECT instance_garage.Instance, instance_garage.Classname, instance_garage.Datestamp, instance_garage.CharacterID, instance_garage.Worldspace, instance_garage.Inventory, "
-		"instance_garage.Hitpoints, instance_garage.Fuel, instance_garage.Damage, instance_garage.last_updated FROM instance_building INNER JOIN instance_garage ON  "
-		"instance_building.objectUID = instance_garage.buildingUIDwhere Instance = '%d' and objectUID = '%s'", serverId, buildingUID );
-
-	if (!worldBuildRes)
+	if (!garageResource)
 	{
 		_logger.error("Failed to fetch objects from database");
 		return;
 	}
-	while (worldBuildRes->fetchRow())
+	string objectId;
+	
+	while (garageResource->fetchRow())
 	{
-		auto row = worldBuildRes->fields();
+		
+		auto row = garageResource->fields();
+		Sqf::Parameters grgParams;
+		string vehicleClasses = "[]";
+		//grgParams.push_back(string("PASS"));
+		try
+		{
+			objectId = row[0].getString();
+			grgParams.push_back(lexical_cast<string>(objectId));
+			string buildingClass = row[1].getString();
+			grgParams.push_back(buildingClass);
+			string wspace = row[2].getString();
+			Sqf::Value worldSpace = lexical_cast<Sqf::Value>(wspace);
+			grgParams.push_back(worldSpace);
+			string charID = row[3].getString();
+			grgParams.push_back(charID); //ownerId should be stringified
+			string garageID = row[4].getString();
+			grgParams.push_back(garageID); //ownerId should be stringified
 
-		Sqf::Parameters bldParams;
-		//bldParams.push_back(string("OBJ"));
-
-		int objectId = row[0].getInt32();
-		bldParams.push_back(lexical_cast<string>(objectId));
-			try
-			{
-				bldParams.push_back(row[1].getString()); //objectId should be stringified 
-				bldParams.push_back(lexical_cast<string>(row[2].getInt32())); //ownerId should be stringified
-				Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[3].getString());
-
-				_logger.information("Pushed BuildingID (" + lexical_cast<string>(objectId) + ") class name (" + row[1].getString() + ") tp position  (" + row[2].getString() + ")");
-				bldParams.push_back(worldSpace);
-				//Inventory can be NULL
-				{
-					string invStr = "[]";
-					if (!row[4].isNull())
-						invStr = row[4].getString();
-
-					bldParams.push_back(lexical_cast<Sqf::Value>(invStr));
-				}	
-				bldParams.push_back(lexical_cast<Sqf::Value>(row[5].getCStr()));
-				bldParams.push_back(row[6].getInt32());
-				bldParams.push_back(row[7].getInt32());
-			}
+			_logger.information("Pushed GarageID (" + lexical_cast<string>(objectId)+") class name (" + lexical_cast<string>(buildingClass)+") with owner  (" + lexical_cast<string>(charID)+")");
+		}
 			
 		catch (const bad_lexical_cast&)
 		{
-			_logger.error("Skipping BuildingID " + lexical_cast<string>(objectId) + " load because of invalid data in db");
-			continue;
+			_logger.error("Skipping BuildingID " + lexical_cast<string>(objectId)+" load because of invalid data in db");
 		}
-
-		queue.push(bldParams);
+		queue.push(grgParams);
+		
 	}
-}*/
+	
+}
+
+void SqlBuildingDataSource::fetchVehicleArray(int serverId, string garageID, ServerGaragesQueue& queue)
+{
+	auto garageVehicleResource = getDB()->queryParams("SELECT ObjectUID, Classname FROM instance_garage WHERE buildingUID = %s AND Instance = %d", getDB()->escape(garageID).c_str(), serverId);
+	string vehicleClasses;
+	string vehicleUID;
+
+	if (!garageVehicleResource)
+	{
+		_logger.error("Failed to fetch objects from database");
+		return;
+	}
+	while (garageVehicleResource->fetchRow())
+	{
+		auto vehiclerow = garageVehicleResource->fields();
+		Sqf::Parameters grgVehParams;
+		try {
+			vehicleUID = vehiclerow[0].getString();
+			vehicleClasses = vehiclerow[1].getString();
+			grgVehParams.push_back(vehicleUID);
+			grgVehParams.push_back(vehicleClasses);
+		}
+		catch (const bad_lexical_cast&)
+		{
+			_logger.error("Skipping BuildingID " + lexical_cast<string>(garageID)+" load because of invalid data in db");
+		}
+		queue.push(grgVehParams);
+	}
+
+}
+
+bool SqlBuildingDataSource::deleteGarageVehicle(int serverId, string vehicleUid, string garageID)
+{
+	unique_ptr<SqlStatement> createbuilding;
+	createbuilding = getDB()->makeStatement(_stmtDeleteGarageVehicle,
+		"insert into object_data ( object_data.ObjectID, object_data.ObjectUID, object_data.Instance, "
+		"object_data.Classname, object_data.Datestamp, object_data.CharacterID, object_data.Worldspace, "
+		"object_data.Inventory, object_data.Hitpoints, object_data.Fuel, object_data.Damage, object_data.last_updated) "
+		"SELECT instance_garage.ObjectID, instance_garage.ObjectUID, instance_garage.Instance, instance_garage.Classname, instance_garage.Datestamp, instance_garage.CharacterID, instance_garage.Worldspace, "
+		"instance_garage.Inventory, instance_garage.Hitpoints, instance_garage.Fuel, instance_garage.Damage, instance_garage.last_updated FROM instance_garage "
+		"where  instance_garage.ObjectUID = ? and instance_garage.Instance = ? and instance_garage.buildingUID = ?;");
+
+	createbuilding->addString(vehicleUid);
+	createbuilding->addInt32(serverId);
+	createbuilding->addString(garageID);
+	createbuilding->execute();
+
+	unique_ptr<SqlStatement> stmt;
+	stmt = getDB()->makeStatement(_stmtInsertVehicleByUID, "DELETE FROM instance_garage WHERE ObjectUID = ? AND Instance = ?");
+	stmt->addString(vehicleUid);
+	stmt->addInt32(serverId);
+
+	bool exRes = stmt->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+
 
 
 bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectIdent, const Sqf::Value& inventory )
@@ -216,14 +267,10 @@ bool SqlBuildingDataSource::updateBuildingInventory( int serverId, Int64 objectI
 }
 
 
-bool SqlBuildingDataSource::deleteBuilding( int serverId, Int64 objectIdent, bool byUID )
+bool SqlBuildingDataSource::deleteBuilding( int serverId, Int64 objectIdent)
 {
 	unique_ptr<SqlStatement> stmt;
-	if (byUID)
-		stmt = getDB()->makeStatement(_stmtDeleteBuildingByUID, "DELETE FROM `instance_building` WHERE `ObjectUID` = ? AND `instanceID` = ?");
-	else
-		stmt = getDB()->makeStatement(_stmtDeleteBuildingByID, "DELETE FROM `instance_building` WHERE `ObjectID` = ? AND `instanceID` = ?");
-
+	stmt = getDB()->makeStatement(_stmtDeleteBuildingByUID, "DELETE FROM `instance_building` WHERE `ObjectUID` = ? AND `instanceID` = ?");
 	stmt->addInt64(objectIdent);
 	stmt->addInt32(serverId);
 
@@ -258,25 +305,21 @@ bool SqlBuildingDataSource::createBuilding(int serverId, const string& className
 	return exRes;
 }
 
-bool SqlBuildingDataSource::garageInsertion(int serverId, Int64 buildingUid)
+bool SqlBuildingDataSource::createGarage(int serverId, const string& className, string buildingUid, const Sqf::Value& worldSpace, string characterId)
 {
 	auto createbuilding = getDB()->makeStatement(_stmtCreateBuilding,
-		"INSERT INTO `instance_building` ( `objectUID`, `instanceId`, `buildingId`, `worldspace`, `inventory`, `hitpoints`, `characterid`, `squadId`,`combination`, `created`) "
-		"VALUES (?, ?, (SELECT building.id FROM building where building.class_name = ?), ?, ?, ?, (SELECT character_data.PlayerUID FROM character_data WHERE character_data.CharacterID = ?), ?, ?, CURRENT_TIMESTAMP)");
+		"INSERT INTO `instance_garagebuilding` ( `objectUID`, `instanceId`, `buildingClass`, `worldspace`, `playerId`, `created`) "
+		"VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
 
 
-	_logger.information("HIVE: Building Insert " + lexical_cast<string>(buildingUid)+":" + lexical_cast<string>(serverId)+":" + lexical_cast<string>(className)+":" + lexical_cast<string>(worldSpace)+":" + lexical_cast<string>(inventory)+":" + lexical_cast<string>(hitPoints)+":" + lexical_cast<string>(characterId)+":" + lexical_cast<string>(squadId)+":" + lexical_cast<string>(combinationId)+":");
+	_logger.information("HIVE: Building Insert " + lexical_cast<string>(buildingUid));
 	//_logger.error("HIVE: Statement " + lexical_cast<string>(stmt)+ ":");
 
-	createbuilding->addInt64(buildingUid);
+	createbuilding->addString(buildingUid);
 	createbuilding->addInt32(serverId);
 	createbuilding->addString(className);
 	createbuilding->addString(lexical_cast<string>(worldSpace));
-	createbuilding->addString(lexical_cast<string>(inventory));
-	createbuilding->addString(lexical_cast<string>(hitPoints));
-	createbuilding->addInt32(characterId);
-	createbuilding->addInt32(squadId);
-	createbuilding->addInt32(combinationId);
+	createbuilding->addString(characterId);
 	bool exRes = createbuilding->execute();
 	poco_assert(exRes == true);
 
@@ -284,4 +327,29 @@ bool SqlBuildingDataSource::garageInsertion(int serverId, Int64 buildingUid)
 }
 
 
+bool SqlBuildingDataSource::garageInsertion(int serverId, string vehicleUid, string garageid)
+{
+	auto createbuilding = getDB()->makeStatement(_stmtInsertGarageVehicle,
+		"insert into instance_garage (instance_garage.buildingUID, instance_garage.ObjectID, instance_garage.ObjectUID, instance_garage.Instance, "
+		"instance_garage.Classname, instance_garage.Datestamp, instance_garage.CharacterID, instance_garage.Worldspace, "
+		"instance_garage.Inventory, instance_garage.Hitpoints, instance_garage.Fuel, instance_garage.Damage, instance_garage.last_updated) "
+		"SELECT ?, object_data.ObjectID, object_data.ObjectUID, object_data.Instance, object_data.Classname, object_data.Datestamp, object_data.CharacterID, object_data.Worldspace, "
+		"object_data.Inventory, object_data.Hitpoints, object_data.Fuel, object_data.Damage, object_data.last_updated FROM object_data "
+		"where object_data.ObjectUID = ? and object_data.Instance = ?;");
+
+	createbuilding->addString(garageid);
+	createbuilding->addString(vehicleUid);
+	createbuilding->addInt32(serverId);
+	bool exRes = createbuilding->execute();
+	poco_assert(exRes == true);
+
+
+	unique_ptr<SqlStatement> delstmt;
+	delstmt = getDB()->makeStatement(_stmtDeleteWorldVehicle, "DELETE FROM Object_data WHERE ObjectUID = ? AND Instance = ?");
+	delstmt->addString(vehicleUid);
+	delstmt->addInt32(serverId);
+	delstmt->execute();
+
+	return exRes;
+}
 

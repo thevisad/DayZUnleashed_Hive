@@ -30,6 +30,7 @@ public:
 	~SqlObjDataSource() {}
 
 	void populateObjects( int serverId, ServerObjectsQueue& queue ) override;
+	void populateVehicle(int serverId, string vehicleUID, string garageID, ServerObjectsQueue& queue) override;
 	bool updateObjectInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory ) override;
 	bool deleteObject( int serverId, Int64 objectIdent, bool byUID ) override;
 	bool updateVehicleMovement( int serverId, Int64 objectIdent, const Sqf::Value& worldspace, double fuel ) override;
@@ -40,6 +41,7 @@ private:
 	string _objTableName;
 	int _cleanupPlacedDays;
 	bool _vehicleOOBReset;
+	static const string _sparky;
 
 	//statement ids
 	SqlStatementID _stmtDeleteOldObject;

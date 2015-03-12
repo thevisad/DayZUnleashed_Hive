@@ -27,6 +27,7 @@ public:
 
 	typedef std::queue<Sqf::Parameters> ServerObjectsQueue;
 	virtual void populateObjects( int serverId, ServerObjectsQueue& queue ) = 0;
+	virtual void populateVehicle(int serverId, string vehicleUID, string garageID, ServerObjectsQueue& queue) = 0;
 
 	virtual bool updateObjectInventory( int serverId, Int64 objectIdent, bool byUID, const Sqf::Value& inventory ) = 0;
 	virtual bool deleteObject( int serverId, Int64 objectIdent, bool byUID ) = 0;
