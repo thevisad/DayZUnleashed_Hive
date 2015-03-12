@@ -59,15 +59,15 @@ void SqlMessagingDataSource::populateMessages( int serverId, ServerMessagingQueu
 		//msgParams.push_back(string("OBJ"));
 
 		string payload = row[0].getString();
-		string loopinterval = row[1].getString();
-		string startdelay = row[2].getString();
+		int loopinterval = row[1].getInt16();
+		int startdelay = row[2].getInt16();
 
 			try
 			{
 				
 				msgParams.push_back(lexical_cast<string>(payload));
-				msgParams.push_back(lexical_cast<string>(loopinterval));
-				msgParams.push_back(lexical_cast<string>(startdelay));
+				msgParams.push_back(loopinterval);
+				msgParams.push_back(startdelay);
 			}
 			
 		catch (const bad_lexical_cast&)

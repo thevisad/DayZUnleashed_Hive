@@ -684,3 +684,18 @@ bool SqlCharDataSource::recordLogin( string playerId, int characterId, int actio
 
 	return exRes;
 }
+
+bool SqlCharDataSource::recordActivity(int serverID, string playerId, string action, string maplocation)
+{
+	auto stmt = getDB()->makeStatement(_stmtRecordLogin,
+		"INSERT INTO `playeractivity` ( `serverid`, `playerid`, `datastamp`, `action`, `maplocation`) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?)");
+	stmt->addInt32(serverID);
+	stmt->addString(playerId);
+	stmt->addString(action);
+	stmt->addString(maplocation);
+	bool exRes = stmt->execute();
+	poco_assert(exRes == true);
+
+	return exRes;
+}
+

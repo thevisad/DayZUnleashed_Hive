@@ -94,8 +94,9 @@ private:
 	Sqf::Value getDateTime(Sqf::Parameters params);
 
 	ObjDataSource::ServerObjectsQueue _srvObjects;
+	ObjDataSource::ServerObjectsQueue _srvGarageVehicleObjects;
 	BuildingDataSource::ServerBuildingsQueue _srvBuildings;
-	BuildingDataSource::ServerBuildingsQueue _srvGarage;
+	BuildingDataSource::ServerGaragesQueue _srvGarage;
 	SquadDataSource::ServerSquadsQueue _srvSquads;
 	SquadDataSource::ServerSquadsQueue _srvInstance;
 	SquadDataSource::ServerSquadsQueue _srvPlayerSquads;
@@ -105,11 +106,13 @@ private:
 	LootDataSource::ServerLootsQueue _srvLoot;
 
 	Sqf::Value streamObjects(Sqf::Parameters params);
+	Sqf::Value streamVehicle(Sqf::Parameters params);
 	Sqf::Value streamBuildings(Sqf::Parameters params);
 	Sqf::Value removeFromGarage(Sqf::Parameters params);
 	Sqf::Value insertIntoGarage(Sqf::Parameters params);
 	Sqf::Value streamMessages(Sqf::Parameters params);
-	//Sqf::Value streamGarage(Sqf::Parameters params);
+	Sqf::Value streamGarage(Sqf::Parameters params);
+	Sqf::Value vehiclesInGarage(Sqf::Parameters params);
 	Sqf::Value streamSquad( Sqf::Parameters params );
 	Sqf::Value streamPlayerSquad( Sqf::Parameters params );
 	Sqf::Value streamQuest( Sqf::Parameters params );
@@ -119,7 +122,7 @@ private:
 	Sqf::Value objectInventory(Sqf::Parameters params, bool byUID = false);
 	Sqf::Value buildingInventory(Sqf::Parameters params);
 	Sqf::Value objectDelete(Sqf::Parameters params, bool byUID = false);
-	Sqf::Value buildingDelete(Sqf::Parameters params, bool byUID = false);
+	Sqf::Value buildingDelete(Sqf::Parameters params);
 	Sqf::Value playerQuestDelete(Sqf::Parameters params, bool byUID = false);
 	Sqf::Value squadDelete(Sqf::Parameters params, bool byUID = false);
 	Sqf::Value playerSquadDelete(Sqf::Parameters params, bool byUID = false);
@@ -139,6 +142,7 @@ private:
 	Sqf::Value loadCharacterVariableArray(Sqf::Parameters params);
 	Sqf::Value loadCharacterDetails(Sqf::Parameters params);
 	Sqf::Value recordCharacterLogin(Sqf::Parameters params);
+	Sqf::Value recordCharacterActivity(Sqf::Parameters params);
 	
 	Sqf::Value loadAHBans(Sqf::Parameters params);
 	Sqf::Value loadAHAdmins(Sqf::Parameters params);
@@ -158,9 +162,9 @@ private:
 
 		//Unleashed
 	Sqf::Value buildingPublish(Sqf::Parameters params);
+	Sqf::Value garagePublish(Sqf::Parameters params);
 	Sqf::Value instancePublish(Sqf::Parameters params);
 	Sqf::Value loadLootPiles(Sqf::Parameters params);
 
 	SqlStatementID _stmtCreateLoot;
-
 };

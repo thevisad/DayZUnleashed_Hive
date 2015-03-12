@@ -39,6 +39,8 @@ public:
 	bool initCharacter( int characterId, const Sqf::Value& inventory, const Sqf::Value& backpack ) override;
 	bool killCharacter( int characterId, int duration ) override;
 	bool recordLogin( string playerId, int characterId, int action ) override;
+	bool recordActivity(int serverID, string playerId, string action, string maplocation) override;
+	
 
 private:
 	string _idFieldName;
@@ -54,4 +56,6 @@ private:
 	SqlStatementID _stmtInsertCharacterVariables;
 	SqlStatementID _stmtKillCharacter;
 	SqlStatementID _stmtRecordLogin;
+	SqlStatementID _stmtRecordActivity;
+	
 };

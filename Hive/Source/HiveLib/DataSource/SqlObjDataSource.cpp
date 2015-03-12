@@ -73,6 +73,7 @@ namespace
 
 #include <Poco/Util/AbstractConfiguration.h>
 
+
 SqlObjDataSource::SqlObjDataSource( Poco::Logger& logger, shared_ptr<Database> db, const Poco::Util::AbstractConfiguration* conf ) : SqlDataSource(logger,db)
 {
 	static const string defaultTable = "Object_DATA"; 
@@ -89,6 +90,7 @@ SqlObjDataSource::SqlObjDataSource( Poco::Logger& logger, shared_ptr<Database> d
 		_vehicleOOBReset = false;
 	}
 }
+
 
 void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue )
 {
@@ -115,7 +117,7 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 		}
 	}
 	
-	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage` FROM `%s` WHERE `Instance`=%d AND `Classname` IS NOT NULL", _objTableName.c_str(), serverId);
+	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`,`ObjectUID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage` FROM `%s` WHERE `Instance`=%d AND `Classname` IS NOT NULL", _objTableName.c_str(), serverId);
 	if (!worldObjsRes)
 	{
 		_logger.error("Failed to fetch objects from database");
@@ -130,17 +132,19 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 
 		int objectId = row[0].getInt32();
 		objParams.push_back(lexical_cast<string>(objectId)); //objectId should be stringified
+		string objectUid = row[1].getString();
+		objParams.push_back(lexical_cast<string>(objectUid)); //objectId should be stringified
 		try
 		{
-			objParams.push_back(row[1].getString()); //classname
-			objParams.push_back(lexical_cast<string>(row[2].getInt32())); //ownerId should be stringified
+			objParams.push_back(row[2].getString()); //classname
+			objParams.push_back(lexical_cast<string>(row[3].getInt32())); //ownerId should be stringified
 
-			Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[3].getString());
-			if (_vehicleOOBReset && row[2].getInt32() == 0) // no owner = vehicle
+			Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[4].getString());
+			if (_vehicleOOBReset) // no owner = vehicle
 			{
 				PositionInfo posInfo = FixOOBWorldspace(worldSpace);
 				if (posInfo.is_initialized())
-					_logger.information("Pushed ObjectID " + lexical_cast<string>(objectId) + " (" + row[1].getString() + ") to position " + lexical_cast<string>(*posInfo));
+					_logger.information("Pushed ObjectID " + lexical_cast<string>(objectId) + " (" + row[2].getString() + ") to position " + lexical_cast<string>(*posInfo));
 
 			}			
 			objParams.push_back(worldSpace);
@@ -148,19 +152,76 @@ void SqlObjDataSource::populateObjects( int serverId, ServerObjectsQueue& queue 
 			//Inventory can be NULL
 			{
 				string invStr = "[]";
-				if (!row[4].isNull())
-					invStr = row[4].getString();
+				if (!row[5].isNull())
+					invStr = row[5].getString();
 
 				objParams.push_back(lexical_cast<Sqf::Value>(invStr));
 			}	
-			objParams.push_back(lexical_cast<Sqf::Value>(row[5].getCStr()));
-			objParams.push_back(row[6].getDouble());
+			objParams.push_back(lexical_cast<Sqf::Value>(row[6].getCStr()));
 			objParams.push_back(row[7].getDouble());
+			objParams.push_back(row[8].getDouble());
 		}
 		catch (const bad_lexical_cast&)
 		{
 			_logger.error("Skipping ObjectID " + lexical_cast<string>(objectId) + " load because of invalid data in db");
 			continue;
+		}
+
+		queue.push(objParams);
+	}
+}
+
+void SqlObjDataSource::populateVehicle(int serverId, string vehicleUID, string garageID, ServerObjectsQueue& queue)
+{
+	auto worldObjsRes = getDB()->queryParams("SELECT `ObjectID`, `ObjectUID`, `Classname`, `CharacterID`, `Worldspace`, `Inventory`, `Hitpoints`, `Fuel`, `Damage` " 
+		" FROM instance_garage WHERE ObjectUID = '%s' AND Instance = %d AND buildingUID = %s", getDB()->escape(vehicleUID).c_str(), serverId, getDB()->escape(garageID).c_str());
+	if (!worldObjsRes)
+	{
+		_logger.error("Failed to fetch objects from database");
+		return;
+	}
+	while (worldObjsRes->fetchRow())
+	{
+		auto row = worldObjsRes->fields();
+
+		Sqf::Parameters objParams;
+		objParams.push_back(string("OBJ"));
+
+		string objectId = row[0].getString();
+		string objectUid = row[1].getString();
+		objParams.push_back(objectId); //objectId should be stringified
+		objParams.push_back(objectUid); //objectId should be stringified
+		try
+		{
+			string classname = row[2].getString();
+			objParams.push_back(classname); //classname
+			objParams.push_back(lexical_cast<string>(row[3].getInt32())); //ownerId should be stringified
+
+			Sqf::Value worldSpace = lexical_cast<Sqf::Value>(row[4].getString());
+			if (_vehicleOOBReset && row[2].getInt32() == 0) // no owner = vehicle
+			{
+				PositionInfo posInfo = FixOOBWorldspace(worldSpace);
+				if (posInfo.is_initialized())
+					_logger.information("Pushed ObjectID " + lexical_cast<string>(objectId)+" (" + row[1].getString() + ") to position " + lexical_cast<string>(*posInfo));
+
+			}
+			objParams.push_back(worldSpace);
+
+			//Inventory can be NULL
+			{
+				string invStr = "[]";
+				if (!row[5].isNull())
+					invStr = row[5].getString();
+
+				objParams.push_back(lexical_cast<Sqf::Value>(invStr));
+			}
+			objParams.push_back(lexical_cast<Sqf::Value>(row[6].getCStr()));
+			objParams.push_back(row[7].getDouble());
+			objParams.push_back(row[8].getDouble());
+		}
+		catch (const bad_lexical_cast&)
+		{
+			_logger.error("Skipping ObjectID " + lexical_cast<string>(objectId)+" load because of invalid data in db");
 		}
 
 		queue.push(objParams);

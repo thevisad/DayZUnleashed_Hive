@@ -37,6 +37,7 @@ public:
 	virtual bool initCharacter( int characterId, const Sqf::Value& inventory, const Sqf::Value& backpack ) = 0;
 	virtual bool killCharacter( int characterId, int duration ) = 0;
 	virtual bool recordLogin( string playerId, int characterId, int action ) = 0;
+	virtual bool recordActivity(int serverID, string playerId, string action, string maplocation) = 0;
 protected:
 	static int SanitiseInv(Sqf::Parameters& origInv);
 };
